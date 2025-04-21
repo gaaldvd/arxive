@@ -1,0 +1,25 @@
+# KDE directory preferences
+.directory
+/*/.directory
+
+# IDE preferences
+.vscode/*
+.idea/*
+
+# Python module cache
+__pycache__/*
+/*/__pycache__/*
+
+# Project backup and package directory
+backup/*
+package/*
+
+# Documentation
+docs/*
+!docs/requirements.txt
+!docs/source
+docs/source/*
+!docs/source/conf.py
+!docs/source/index.rst
+
+# Project specific files and directories
