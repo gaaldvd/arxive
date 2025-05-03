@@ -24,3 +24,6 @@ docs/source/*
 
 # Project specific files and directories
 arxive
+config.json
+test
+src/test.py
