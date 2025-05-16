@@ -26,4 +26,5 @@ docs/source/*
 arxive
 config.json
 test
-src/test.py
+src/test_cli.py
+src/test_gui.py

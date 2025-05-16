@@ -1,6 +1,6 @@
 # validate options
-if [ "$#" -eq 0 ] || [[ "$1" != "-u" && "$1" != "-c" && "$1" != "-g" ]]; then
-    echo "> Usage: $0 [-u] [-c/-g] [SOURCE] [DESTINATION]"
+if [ "$#" -eq 0 ] || [ "$#" -gt 3 ] || [[ "$1" != "-u" && "$1" != "-c" && "$1" != "-g" ]]; then
+    echo "> Usage: $0 [-u] [-c / -g] [<SOURCE>] [<DESTINATION>]"
     exit 1
 fi
 
@@ -18,25 +18,20 @@ while getopts "ucg" flag; do
       mode="gui"
       break;;
     *)
-      echo "> Usage: $0 [-u] [-c/-g] [SOURCE] [DESTINATION]"
+      echo "> Usage: $0 [-u] [-c / -g] [<SOURCE>] [<DESTINATION>]"
       exit 1;;
   esac
 done
 
 # start application
 clear
-if [ -n "$2" ]; then
-    params="$2"
-    echo "> Parameters: $params"
-    shift 2
-    if [ "$#" -eq 0 ]; then
-        pipenv run python src/arxive_"$mode".py "$params"
-    else
-        args="$@"
-        echo "> Arguments: $args"
-        pipenv run python src/arxive_"$mode".py "$params" "$args"
-    fi
+if [ -n "$2" ] && [ -n "$3" ]; then
+    echo "> Source: $2"
+    echo "> Destination: $3"
+    #pipenv run python src/arxive_"$mode".py "$2" "$3"
+    pipenv run python src/test_"$mode".py "$2" "$3"
 else
     echo "> No source/destination specified."
-    pipenv run python src/arxive_"$mode".py
+    #pipenv run python src/arxive_"$mode".py
+    pipenv run python src/test_"$mode".py
 fi
