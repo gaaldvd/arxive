@@ -57,3 +57,12 @@ def delete_files(files):
         except Exception as e:
             # TODO write errors to log file
             print(f"Error deleting {file}: {e}")
+
+
+def sync(source, destination):
+    cmd = ["rsync", "-av", source, destination]
+    try:
+        return run(cmd)
+    except Exception as e:
+        # TODO write errors to log file
+        print(f"Error: {e}")

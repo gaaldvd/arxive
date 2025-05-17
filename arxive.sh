@@ -28,10 +28,10 @@ clear
 if [ -n "$2" ] && [ -n "$3" ]; then
     echo "> Source: $2"
     echo "> Destination: $3"
-    #pipenv run python src/arxive_"$mode".py "$2" "$3"
-    pipenv run python src/test_"$mode".py "$2" "$3"
+    pipenv run python src/arxive_"$mode".py "$2" "$3"
+    #pipenv run python src/test_"$mode".py "$2" "$3"
 else
     echo "> No source/destination specified."
-    #pipenv run python src/arxive_"$mode".py
-    pipenv run python src/test_"$mode".py
+    pipenv run python src/arxive_"$mode".py
+    #pipenv run python src/test_"$mode".py
 fi

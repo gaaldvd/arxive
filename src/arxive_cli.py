@@ -4,6 +4,21 @@ from sys import argv
 from arxive_common import *
 
 
+def get_paths(config):
+    if len(argv) > 1:
+        source, destination = argv[1], argv[2]
+        return source, destination
+    elif config['source'] and config['destination']:
+        source, destination = config['source'], config['destination']
+        return source, destination
+    else:
+        source, destination = input("source: "), input("destination: ")
+        choice = input("save as default? [y/N]: ").strip().lower()
+        if choice == "y":
+            save_config({'source': source, 'destination': destination})
+        return source, destination
+
+
 def prompt_deletions(files, destination):
     files_to_delete = []
     for file in files:
@@ -15,23 +30,14 @@ def prompt_deletions(files, destination):
     return files_to_delete
 
 
-# main function
 def main():
     """Main function."""
 
     config = load_config()
     print(f"configs: {config}")
 
-    if len(argv) > 1:
-        source, destination = argv[1], argv[2]
-    elif config['source'] and config['destination']:
-        source, destination = config['source'], config['destination']
-    else:
-        source, destination = input("source: "), input("destination: ")
-        choice = input("save as default? [y/N]: ").strip().lower()
-        if choice == "y":
-            save_config({'source': source, 'destination': destination})
-
+    source, destination = get_paths(config)
+    # TODO check if these are valid paths
     print(f"source: {source}\ndestination: {destination}")
 
     deletions = get_deletions(source, destination)
@@ -42,7 +48,12 @@ def main():
 
     delete_files(files_to_delete)
 
+    print(f"syncing from {source} to {destination}...")
+    if sync(source, destination).returncode == 0:
+        print("done!")
+    else:
+        print("error, see session log for details!")
 
-# script body
+
 if __name__ == '__main__':
     main()
