@@ -3,30 +3,45 @@
 from json import load, dump
 from subprocess import run
 from os import path, remove, rmdir
+from datetime import datetime
 
 
 def load_config():
     config_path = path.expanduser('~/.config/arxive.json')
     try:
         if path.exists(config_path):
-            with open(config_path, 'r') as file:
+            with open(config_path, 'r', encoding="utf-8") as file:
                 return load(file)
         else:
-            with open(config_path, 'w') as file:
-                config = {'source': "", 'destination': ""}
+            with open(config_path, 'w', encoding="utf-8") as file:
+                config = {}
                 dump(config, file)
                 return config
     except Exception as e:
-        # TODO write errors to log file
-        print(f"Error: {e}")
+        with open('session.log', 'a', encoding="utf-8") as log:
+            log.write(f"Error: {e}")
+        return False
+
 
 def save_config(config):
     try:
-        with open(path.expanduser('~/.config/arxive.json'), 'w') as file:
+        with open(path.expanduser('~/.config/arxive.json'), 'w',
+                  encoding="utf-8") as file:
             dump(config, file)
+        return True
     except Exception as e:
-        # TODO write errors to log file
-        print(f"Error: {e}")
+        with open('session.log', 'a', encoding="utf-8") as log:
+            log.write(f"Error: {e}")
+        return False
+
+
+def create_session_log():
+    base_path = path.dirname(path.dirname(path.abspath(__file__)))
+    with open(f'{base_path}/session.log', 'w', encoding="utf-8") as log:
+        log.write(f"=============================================\n"
+                  f"arXive session log -- "
+                  f"{datetime.now().strftime("%Y %b %d. - %X")}\n"
+                  f"=============================================\n")
 
 
 def get_deletions(source, destination):
@@ -38,11 +53,11 @@ def get_deletions(source, destination):
             if line.startswith("deleting "):
                 filepath = line[len("deleting "):].strip()
                 deletions.append(filepath)
-    except Exception as e:
-        # TODO write errors to log file
-        print(f"Error: {e}")
-    finally:
         return deletions
+    except Exception as e:
+        with open('session.log', 'a', encoding="utf-8") as log:
+            log.write(f"Error: {e}")
+        return False
 
 
 def delete_files(files):
@@ -55,8 +70,9 @@ def delete_files(files):
             else:
                 raise Exception
         except Exception as e:
-            # TODO write errors to log file
-            print(f"Error deleting {file}: {e}")
+            with open('session.log', 'a', encoding="utf-8") as log:
+                log.write(f"Error: {e}")
+            return False
 
 
 def sync(source, destination):
@@ -64,5 +80,5 @@ def sync(source, destination):
     try:
         return run(cmd)
     except Exception as e:
-        # TODO write errors to log file
-        print(f"Error: {e}")
+        with open('session.log', 'a', encoding="utf-8") as log:
+            log.write(f"Error: {e}")

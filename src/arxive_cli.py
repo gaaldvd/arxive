@@ -1,58 +1,61 @@
 # arXive CLI script
 
-from sys import argv
+from sys import argv, exit as close
 from arxive_common import *
-
-
-def get_paths(config):
-    if len(argv) > 1:
-        source, destination = argv[1], argv[2]
-        return source, destination
-    elif config['source'] and config['destination']:
-        source, destination = config['source'], config['destination']
-        return source, destination
-    else:
-        source, destination = input("source: "), input("destination: ")
-        choice = input("save as default? [y/N]: ").strip().lower()
-        if choice == "y":
-            save_config({'source': source, 'destination': destination})
-        return source, destination
-
-
-def prompt_deletions(files, destination):
-    files_to_delete = []
-    for file in files:
-        full_path = path.join(destination, file)
-        print(full_path)
-        choice = input("delete? [y/N]: ").strip().lower()
-        if choice == "y":
-            files_to_delete.append(full_path)
-    return files_to_delete
 
 
 def main():
     """Main function."""
 
+    # Create session log, load config file
+    create_session_log()
     config = load_config()
-    print(f"configs: {config}")
+    if config is False:
+        close("Error, see session log for details!")
 
-    source, destination = get_paths(config)
-    # TODO check if these are valid paths
-    print(f"source: {source}\ndestination: {destination}")
+    # Determine source and destination
+    if not path.exists(argv[1]) or not path.exists(argv[2]):
+        close("Invalid source/destination!")
+    source, destination = argv[1], argv[2]
+    print(f"Source: {source}\nDestination: {destination}")
 
+    # Get the list of files deleted from source
     deletions = get_deletions(source, destination)
-    print(f"deletions: {deletions}")
+    if deletions is False:
+        close("Error, see session log for details!")
 
-    files_to_delete = prompt_deletions(deletions, destination)
-    print(f"files to delete: {files_to_delete}")
+    # Prompt the user for which files to delete and delete files
+    print(f"\n{len(deletions)} file(s) to delete.\n")
+    if len(deletions) > 0:
+        for file in deletions:
+            print(f"  {file}")
+        choice = input("\nDelete [a]ll, [n]one or "
+                       "prompt for each (default)? : ").strip().lower()
+        if choice == "a":
+            files_to_del = [path.join(destination, file) for file in deletions]
+            if delete_files(files_to_del) is False:
+                close("Error, see session log for details!")
+            print(f"{len(files_to_del)} file(s) deleted.\n")
+        elif choice == "n":
+            print(f"Deletion of {len(deletions)} file(s) skipped.\n")
+        else:
+            files_to_del = [path.join(destination, file) for file in deletions
+                            if input(f"Delete {path.join(destination, file)}"
+                                     f" [Y/n]: ").strip().lower() != "n"]
+            if delete_files(files_to_del) is False:
+                close("Error, see session log for details!")
+            print(f"{len(files_to_del)} file(s) deleted.\n")
 
-    delete_files(files_to_delete)
-
-    print(f"syncing from {source} to {destination}...")
-    if sync(source, destination).returncode == 0:
-        print("done!")
+    # Synchronize source and destination with rsync
+    choice = input("Proceed with synchronization? [Y/n]: ").strip().lower()
+    if choice == "n":
+        close("\nSynchronization stopped. Goodbye!")
     else:
-        print("error, see session log for details!")
+        print(f"Syncing from {source} to {destination}...")
+        if sync(source, destination).returncode == 0:
+            print("\nSynchronization finished. Goodbye!")
+        else:
+            print("Error, see session log for details!")
 
 
 if __name__ == '__main__':

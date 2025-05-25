@@ -24,7 +24,7 @@ docs/source/*
 
 # Project specific files and directories
 arxive
-config.json
+session.log
 test
 src/test_cli.py
 src/test_gui.py

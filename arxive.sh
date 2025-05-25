@@ -1,8 +1,11 @@
 # validate options
 if [ "$#" -eq 0 ] || [ "$#" -gt 3 ] || [[ "$1" != "-u" && "$1" != "-c" && "$1" != "-g" ]]; then
-    echo "> Usage: $0 [-u] [-c / -g] [<SOURCE>] [<DESTINATION>]"
+    echo "> Usage: arxive [-u] [-c / -g] [<SOURCE>] [<DESTINATION>]"
     exit 1
 fi
+
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+cd "$SCRIPT_DIR" || exit
 
 # interpret options
 while getopts "ucg" flag; do
@@ -18,7 +21,7 @@ while getopts "ucg" flag; do
       mode="gui"
       break;;
     *)
-      echo "> Usage: $0 [-u] [-c / -g] [<SOURCE>] [<DESTINATION>]"
+      echo "> Usage: arxive [-u] [-c / -g] [<SOURCE>] [<DESTINATION>]"
       exit 1;;
   esac
 done
@@ -26,12 +29,9 @@ done
 # start application
 clear
 if [ -n "$2" ] && [ -n "$3" ]; then
-    echo "> Source: $2"
-    echo "> Destination: $3"
     pipenv run python src/arxive_"$mode".py "$2" "$3"
     #pipenv run python src/test_"$mode".py "$2" "$3"
 else
     echo "> No source/destination specified."
-    pipenv run python src/arxive_"$mode".py
-    #pipenv run python src/test_"$mode".py
+    echo "> Usage: arxive [-u] [-c / -g] [<SOURCE>] [<DESTINATION>]"
 fi
