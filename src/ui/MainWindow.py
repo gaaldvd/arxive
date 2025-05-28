@@ -1,0 +1,117 @@
+# -*- coding: utf-8 -*-
+
+################################################################################
+## Form generated from reading UI file 'mainwindow.ui'
+##
+## Created by: Qt User Interface Compiler version 6.9.0
+##
+## WARNING! All changes made in this file will be lost when recompiling UI file!
+################################################################################
+
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QApplication, QGridLayout, QLabel, QLineEdit,
+    QListWidget, QListWidgetItem, QMainWindow, QPushButton,
+    QSizePolicy, QSpacerItem, QStatusBar, QToolBar,
+    QVBoxLayout, QWidget)
+
+class Ui_MainWindow(object):
+    def setupUi(self, MainWindow):
+        if not MainWindow.objectName():
+            MainWindow.setObjectName(u"MainWindow")
+        MainWindow.resize(1100, 800)
+        MainWindow.setMinimumSize(QSize(800, 600))
+        self.centralwidget = QWidget(MainWindow)
+        self.centralwidget.setObjectName(u"centralwidget")
+        self.verticalLayout = QVBoxLayout(self.centralwidget)
+        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.sessionCtrl = QWidget(self.centralwidget)
+        self.sessionCtrl.setObjectName(u"sessionCtrl")
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.sessionCtrl.sizePolicy().hasHeightForWidth())
+        self.sessionCtrl.setSizePolicy(sizePolicy)
+        self.gridLayout = QGridLayout(self.sessionCtrl)
+        self.gridLayout.setObjectName(u"gridLayout")
+        self.destEdit = QLineEdit(self.sessionCtrl)
+        self.destEdit.setObjectName(u"destEdit")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.destEdit.sizePolicy().hasHeightForWidth())
+        self.destEdit.setSizePolicy(sizePolicy1)
+        self.destEdit.setMinimumSize(QSize(300, 0))
+
+        self.gridLayout.addWidget(self.destEdit, 1, 1, 1, 1)
+
+        self.destLabel = QLabel(self.sessionCtrl)
+        self.destLabel.setObjectName(u"destLabel")
+        sizePolicy1.setHeightForWidth(self.destLabel.sizePolicy().hasHeightForWidth())
+        self.destLabel.setSizePolicy(sizePolicy1)
+
+        self.gridLayout.addWidget(self.destLabel, 1, 0, 1, 1)
+
+        self.runButton = QPushButton(self.sessionCtrl)
+        self.runButton.setObjectName(u"runButton")
+        sizePolicy1.setHeightForWidth(self.runButton.sizePolicy().hasHeightForWidth())
+        self.runButton.setSizePolicy(sizePolicy1)
+
+        self.gridLayout.addWidget(self.runButton, 0, 3, 1, 1)
+
+        self.sourceLabel = QLabel(self.sessionCtrl)
+        self.sourceLabel.setObjectName(u"sourceLabel")
+        sizePolicy1.setHeightForWidth(self.sourceLabel.sizePolicy().hasHeightForWidth())
+        self.sourceLabel.setSizePolicy(sizePolicy1)
+
+        self.gridLayout.addWidget(self.sourceLabel, 0, 0, 1, 1)
+
+        self.sourceEdit = QLineEdit(self.sessionCtrl)
+        self.sourceEdit.setObjectName(u"sourceEdit")
+        sizePolicy1.setHeightForWidth(self.sourceEdit.sizePolicy().hasHeightForWidth())
+        self.sourceEdit.setSizePolicy(sizePolicy1)
+        self.sourceEdit.setMinimumSize(QSize(300, 0))
+
+        self.gridLayout.addWidget(self.sourceEdit, 0, 1, 1, 1)
+
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.gridLayout.addItem(self.horizontalSpacer, 0, 2, 1, 1)
+
+
+        self.verticalLayout.addWidget(self.sessionCtrl)
+
+        self.listWidget = QListWidget(self.centralwidget)
+        self.listWidget.setObjectName(u"listWidget")
+
+        self.verticalLayout.addWidget(self.listWidget)
+
+        MainWindow.setCentralWidget(self.centralwidget)
+        self.statusbar = QStatusBar(MainWindow)
+        self.statusbar.setObjectName(u"statusbar")
+        MainWindow.setStatusBar(self.statusbar)
+        self.toolbar = QToolBar(MainWindow)
+        self.toolbar.setObjectName(u"toolbar")
+        self.toolbar.setMovable(False)
+        self.toolbar.setIconSize(QSize(32, 32))
+        self.toolbar.setFloatable(False)
+        MainWindow.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.toolbar)
+
+        self.retranslateUi(MainWindow)
+
+        QMetaObject.connectSlotsByName(MainWindow)
+    # setupUi
+
+    def retranslateUi(self, MainWindow):
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"arXive", None))
+        self.destLabel.setText(QCoreApplication.translate("MainWindow", u"Destination:", None))
+        self.runButton.setText(QCoreApplication.translate("MainWindow", u"Run", None))
+        self.sourceLabel.setText(QCoreApplication.translate("MainWindow", u"Source:", None))
+        self.toolbar.setWindowTitle(QCoreApplication.translate("MainWindow", u"toolbar", None))
+    # retranslateUi
+

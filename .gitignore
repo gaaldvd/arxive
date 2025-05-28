@@ -7,8 +7,7 @@
 .idea/*
 
 # Python module cache
-__pycache__/*
-/*/__pycache__/*
+**/__pycache__/*
 
 # Project backup and package directory
 backup/*

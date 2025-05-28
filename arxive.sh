@@ -30,7 +30,8 @@ done
 clear
 if [ -n "$2" ] && [ -n "$3" ]; then
     pipenv run python src/arxive_"$mode".py "$2" "$3"
-    #pipenv run python src/test_"$mode".py "$2" "$3"
+elif [ "$1" = "-g" ]; then
+    pipenv run python src/arxive_gui.py
 else
     echo "> No source/destination specified."
     echo "> Usage: arxive [-u] [-c / -g] [<SOURCE>] [<DESTINATION>]"
