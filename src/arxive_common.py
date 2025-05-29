@@ -73,6 +73,7 @@ def delete_files(files):
             with open('session.log', 'a', encoding="utf-8") as log:
                 log.write(f"Error: {e}")
             return False
+    return True
 
 
 def sync(source, destination):
@@ -82,3 +83,4 @@ def sync(source, destination):
     except Exception as e:
         with open('session.log', 'a', encoding="utf-8") as log:
             log.write(f"Error: {e}")
+        return False

@@ -24,7 +24,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(1100, 800)
+        MainWindow.resize(900, 600)
         MainWindow.setMinimumSize(QSize(800, 600))
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
@@ -57,12 +57,15 @@ class Ui_MainWindow(object):
 
         self.gridLayout.addWidget(self.destLabel, 1, 0, 1, 1)
 
-        self.runButton = QPushButton(self.sessionCtrl)
-        self.runButton.setObjectName(u"runButton")
-        sizePolicy1.setHeightForWidth(self.runButton.sizePolicy().hasHeightForWidth())
-        self.runButton.setSizePolicy(sizePolicy1)
+        self.listdelButton = QPushButton(self.sessionCtrl)
+        self.listdelButton.setObjectName(u"listdelButton")
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.listdelButton.sizePolicy().hasHeightForWidth())
+        self.listdelButton.setSizePolicy(sizePolicy2)
 
-        self.gridLayout.addWidget(self.runButton, 0, 3, 1, 1)
+        self.gridLayout.addWidget(self.listdelButton, 0, 3, 1, 1)
 
         self.sourceLabel = QLabel(self.sessionCtrl)
         self.sourceLabel.setObjectName(u"sourceLabel")
@@ -83,13 +86,24 @@ class Ui_MainWindow(object):
 
         self.gridLayout.addItem(self.horizontalSpacer, 0, 2, 1, 1)
 
+        self.syncButton = QPushButton(self.sessionCtrl)
+        self.syncButton.setObjectName(u"syncButton")
+        sizePolicy2.setHeightForWidth(self.syncButton.sizePolicy().hasHeightForWidth())
+        self.syncButton.setSizePolicy(sizePolicy2)
+
+        self.gridLayout.addWidget(self.syncButton, 1, 3, 1, 1)
+
+        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.gridLayout.addItem(self.horizontalSpacer_2, 1, 2, 1, 1)
+
 
         self.verticalLayout.addWidget(self.sessionCtrl)
 
-        self.listWidget = QListWidget(self.centralwidget)
-        self.listWidget.setObjectName(u"listWidget")
+        self.delList = QListWidget(self.centralwidget)
+        self.delList.setObjectName(u"delList")
 
-        self.verticalLayout.addWidget(self.listWidget)
+        self.verticalLayout.addWidget(self.delList)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QStatusBar(MainWindow)
@@ -110,8 +124,9 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"arXive", None))
         self.destLabel.setText(QCoreApplication.translate("MainWindow", u"Destination:", None))
-        self.runButton.setText(QCoreApplication.translate("MainWindow", u"Run", None))
+        self.listdelButton.setText(QCoreApplication.translate("MainWindow", u"List deletions", None))
         self.sourceLabel.setText(QCoreApplication.translate("MainWindow", u"Source:", None))
+        self.syncButton.setText(QCoreApplication.translate("MainWindow", u"Run sync", None))
         self.toolbar.setWindowTitle(QCoreApplication.translate("MainWindow", u"toolbar", None))
     # retranslateUi
 
