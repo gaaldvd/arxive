@@ -1,3 +1,9 @@
-# general
+# arXive todo
 
-- additional info to session log?
+- config
+  - default paths
+  - rsync options
+
+## GUI
+
+- close console

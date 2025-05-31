@@ -16,9 +16,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QGridLayout, QLabel, QLineEdit,
-    QListWidget, QListWidgetItem, QMainWindow, QPushButton,
-    QSizePolicy, QSpacerItem, QStatusBar, QToolBar,
-    QVBoxLayout, QWidget)
+    QListWidget, QListWidgetItem, QMainWindow, QPlainTextEdit,
+    QPushButton, QSizePolicy, QSpacerItem, QStatusBar,
+    QToolBar, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -88,6 +88,7 @@ class Ui_MainWindow(object):
 
         self.syncButton = QPushButton(self.sessionCtrl)
         self.syncButton.setObjectName(u"syncButton")
+        self.syncButton.setEnabled(False)
         sizePolicy2.setHeightForWidth(self.syncButton.sizePolicy().hasHeightForWidth())
         self.syncButton.setSizePolicy(sizePolicy2)
 
@@ -104,6 +105,12 @@ class Ui_MainWindow(object):
         self.delList.setObjectName(u"delList")
 
         self.verticalLayout.addWidget(self.delList)
+
+        self.consoleOutput = QPlainTextEdit(self.centralwidget)
+        self.consoleOutput.setObjectName(u"consoleOutput")
+        self.consoleOutput.setReadOnly(True)
+
+        self.verticalLayout.addWidget(self.consoleOutput)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QStatusBar(MainWindow)

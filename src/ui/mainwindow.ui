@@ -116,6 +116,9 @@
        </item>
        <item row="1" column="3">
         <widget class="QPushButton" name="syncButton">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="sizePolicy">
           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -145,6 +148,13 @@
     </item>
     <item>
      <widget class="QListWidget" name="delList"/>
+    </item>
+    <item>
+     <widget class="QPlainTextEdit" name="consoleOutput">
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
