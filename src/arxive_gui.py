@@ -34,6 +34,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.source, self.destination = None, None
         self.listdelButton.setFocus()
 
+        # Redirect console output
         self.output_redirector = OutputRedirector(self.consoleOutput)
         sys.stdout = self.output_redirector
         sys.stderr = self.output_redirector
@@ -93,8 +94,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             parent=self, caption=f"Select {folder}", dir=expanduser("~"))
         if folder_path:
             if folder == "source":
+                self.source = folder_path
                 self.sourceEdit.setText(folder_path)
             else:
+                self.destination = folder_path
                 self.destEdit.setText(folder_path)
             print(f"{folder.capitalize()}: {folder_path}")
 
@@ -113,42 +116,68 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def list_deletions(self):
         self.statusbar.showMessage("Listing deletions...")
         self.delList.clear()
-        deletions = get_deletions(self.source, self.destination)
-        print(f"{len(deletions)} deletions found.")
-        if deletions is False:
-            print("Error, see session log for details!")
-        if deletions:
-            for file in deletions:
-                item = QListWidgetItem(file)
-                item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
-                item.setCheckState(Qt.CheckState.Unchecked)
-                self.delList.addItem(item)
-            self.statusbar.showMessage("Deletions listed, "
-                                       "ready to synchronize.")
-        else:
-            self.statusbar.showMessage("No deletions found, "
-                                       "ready to synchronize.")
-        self.syncButton.setEnabled(True)
+        try:
+            deletions = get_deletions(self.source, self.destination)
+            print(deletions)
+            if deletions:
+                print(f"{len(deletions)} deletions found.")
+                for file in deletions:
+                    item = QListWidgetItem(file)
+                    item.setFlags(item.flags() |
+                                  Qt.ItemFlag.ItemIsUserCheckable)
+                    item.setCheckState(Qt.CheckState.Unchecked)
+                    self.delList.addItem(item)
+                self.statusbar.showMessage("Deletions listed, "
+                                           "ready to synchronize.")
+            else:
+                self.statusbar.showMessage("No deletions found, "
+                                           "ready to synchronize.")
+            self.syncButton.setEnabled(True)
+        except Exception as e:
+            # TODO alert
+            print("Error while listing deletions. See session log for details.")
+            with open('session.log', 'a', encoding="utf-8") as log:
+                log.write(f"Error while listing deletions: {e}")
+            self.statusbar.showMessage("Deletions could not be listed.")
+
 
     @Slot()
     def run_sync(self):
-        files = [path.join(self.destination, self.delList.item(index).text())
+
+        # Delete files/folders
+        entities = [path.join(self.destination, self.delList.item(index).text())
                  for index in range(self.delList.count())
                  if self.delList.item(index).checkState()
                  == Qt.CheckState.Checked]
-        if delete_files(files) is False:
-            print("Error, see session log for details!")
-        if files:
-            print(f"{len(files)} file(s) deleted.")
+        for entity in entities:
+            try:
+                delete_entity(entity)
+                print(f"{entity} deleted.")
+            except Exception as e:
+                print(f"Error - {e}")
+                with open('session.log', 'a', encoding="utf-8") as log:
+                    log.write(f"Error - {e}")
+
+        # Synchronize source and destination with rsync
         print(f"Syncing from {self.source} to {self.destination}...")
-        result = sync(self.source, self.destination)
-        print(result.stdout)
-        print(result.stderr, file=sys.stderr)
-        if result.returncode == 0:
-            self.statusbar.showMessage("Synchronization finished.")
-            print("Synchronization finished.")
-        else:
-            print("Error, see session log for details!")
+        try:
+            result = sync(self.source, self.destination)
+            print(result.stdout)
+            print(result.stderr, file=sys.stderr)
+            if result.returncode == 0:
+                print("Synchronization finished.")
+                self.statusbar.showMessage("Synchronization finished.")
+            else:
+                print("Rsync error, see session log for details!")
+                with open('session.log', 'a', encoding="utf-8") as log:
+                    log.write(f"Rsync error: {result.returncode}")
+        except Exception as e:
+            print(f"Error while synchronizing: {e}")
+            with open('session.log', 'a', encoding="utf-8") as log:
+                log.write(f"Error while synchronizing: {e}")
+        finally:
+            self.delList.clear()
+
 
 
 # main function
@@ -158,27 +187,37 @@ def main():
     app = QApplication(sys.argv)
     window = MainWindow()
 
-    # Create session log, load config file
-    create_session_log()
-    config = load_config()
-    if config is False:
+    # Create session log
+    try:
+        create_session_log()
+    except Exception as e:
         # TODO alert
-        sys.exit("Error, see session log for details!")
+        print(f"Error while creating session log: {e}")
+        window.statusbar.showMessage("Session log could not be created.")
+
+    # Load config file
+    try:
+        config = load_config()
+    except Exception as e:
+        # TODO alert
+        print("Error while loading configurations. "
+              "See session log for details.")
+        with open('session.log', 'a', encoding="utf-8") as log:
+            log.write(f"Error while loading configurations: {e}")
+        window.statusbar.showMessage("Configurations could not be loaded.")
 
     # Determine source and destination from CLI arguments
-    source, destination = None, None
+    window.source, window.destination = None, None
     if len(sys.argv) > 1:
         if not path.exists(sys.argv[1]) or not path.exists(sys.argv[2]):
             # TODO alert
             pass
         else:
-            source, destination = sys.argv[1], sys.argv[2]
-            window.sourceEdit.setText(source)
-            window.destEdit.setText(destination)
+            window.source, window.destination = sys.argv[1], sys.argv[2]
+            window.sourceEdit.setText(window.source)
+            window.destEdit.setText(window.destination)
             window.statusbar.showMessage("Ready.")
-
-    print(f"Source: {source}\nDestination: {destination}")
-    window.source, window.destination = source, destination
+    print(f"Source: {window.source}\nDestination: {window.destination}")
 
     # Setting up UI...
     window.show()

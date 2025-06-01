@@ -23,6 +23,7 @@ docs/source/*
 
 # Project specific files and directories
 arxive
+arxive.desktop
 session.log
 test
 src/test_cli.py
