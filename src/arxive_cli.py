@@ -23,7 +23,7 @@ def main():
               "See session log for details.")
 
     # Determine source and destination
-    if not path.exists(argv[1]) or not path.exists(argv[2]):
+    if not (path.exists(argv[1]) or path.exists(argv[2])):
         close("Invalid source/destination!")
     source, destination = argv[1], argv[2]
     print(f"Source: {source}\nDestination: {destination}")

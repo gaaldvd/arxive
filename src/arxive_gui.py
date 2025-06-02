@@ -31,7 +31,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__()
 
         self.setupUi(self)
-        self.source, self.destination = None, None
+        self.source, self.destination, self.config = None, None, None
         self.listdelButton.setFocus()
 
         # Redirect console output
@@ -118,7 +118,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.delList.clear()
         try:
             deletions = get_deletions(self.source, self.destination)
-            print(deletions)
             if deletions:
                 print(f"{len(deletions)} deletions found.")
                 for file in deletions:
@@ -197,7 +196,8 @@ def main():
 
     # Load config file
     try:
-        config = load_config()
+        window.config = load_config()
+        print("Configurations loaded.")
     except Exception as e:
         # TODO alert
         print("Error while loading configurations. "
@@ -206,17 +206,30 @@ def main():
             log.write(f"Error while loading configurations: {e}")
         window.statusbar.showMessage("Configurations could not be loaded.")
 
-    # Determine source and destination from CLI arguments
+    # Determine source and destination
     window.source, window.destination = None, None
     if len(sys.argv) > 1:
-        if not path.exists(sys.argv[1]) or not path.exists(sys.argv[2]):
-            # TODO alert
-            pass
-        else:
-            window.source, window.destination = sys.argv[1], sys.argv[2]
-            window.sourceEdit.setText(window.source)
-            window.destEdit.setText(window.destination)
-            window.statusbar.showMessage("Ready.")
+        window.source, window.destination = sys.argv[1], sys.argv[2]
+    else:
+        window.source = window.config['source']
+        window.destination = window.config['destination']
+    if not path.exists(window.source):
+        # TODO alert
+        print(f"Invalid source: {window.source}")
+        window.source = None
+        with open('session.log', 'a', encoding="utf-8") as log:
+            log.write(f"Invalid source: {window.source}")
+    else:
+        window.sourceEdit.setText(window.source)
+    if not path.exists(window.destination):
+        # TODO alert
+        print(f"Invalid destination: {window.destination}")
+        window.destination = None
+        with open('session.log', 'a', encoding="utf-8") as log:
+            log.write(f"Invalid destination: {window.destination}")
+    else:
+        window.destEdit.setText(window.destination)
+    window.statusbar.showMessage("Ready.")
     print(f"Source: {window.source}\nDestination: {window.destination}")
 
     # Setting up UI...
