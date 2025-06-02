@@ -15,6 +15,14 @@ def create_session_log():
                   f"=============================================\n")
 
 
+def write_log(msg, exception=None):
+    print(msg)
+    if exception:
+        msg = f"{msg} - {exception}"
+    with open('session.log', 'a', encoding="utf-8") as log:
+        log.write(f"{msg}\n")
+
+
 def load_config():
     config_path = path.expanduser('~/.config/arxive.json')
     if path.exists(config_path):

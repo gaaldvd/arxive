@@ -7,23 +7,45 @@ from arxive_common import *
 from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QFileDialog,
                                QSizePolicy, QListWidgetItem)
 from PySide6.QtCore import Slot, Qt
-from PySide6.QtGui import QAction, QIcon, QTextCursor
+from PySide6.QtGui import QAction, QIcon, QTextCursor, QColor, QTextCharFormat
 from ui.MainWindow import Ui_MainWindow
 
 
 # Custom class to redirect console output
 class OutputRedirector:
-    def __init__(self, text_edit):
-        self.text_edit = text_edit
+    def __init__(self, plain_text_edit):
+        self.plain_text_edit = plain_text_edit
 
     def write(self, text):
-        # Append text to the widget
-        self.text_edit.moveCursor(QTextCursor.End)  # Move to the end
-        self.text_edit.insertPlainText(text)
-        self.text_edit.ensureCursorVisible()  # Scroll to the bottom
+        if text.strip():  # Avoid empty lines
+            # Determine color based on content
+            if "error" in text.lower():
+                color = QColor("red")
+            elif "warning" in text.lower():
+                color = QColor("orange")
+            else:
+                color = QColor("black")
+
+            # Append text with the determined color
+            self.append_colored_text(text.strip(), color)
 
     def flush(self):
-        pass  # No-op for compatibility with sys.stdout requirements
+        pass  # Required for compatibility with `sys.stdout`
+
+    def append_colored_text(self, text, color):
+        # Move cursor to the end
+        cursor = self.plain_text_edit.textCursor()
+        cursor.movePosition(QTextCursor.End)
+
+        # Set text format
+        text_format = QTextCharFormat()
+        text_format.setForeground(color)
+
+        # Insert text with the format
+        cursor.insertText(text + "\n", text_format)
+
+        # Ensure the cursor remains at the end
+        self.plain_text_edit.setTextCursor(cursor)
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -99,7 +121,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else:
                 self.destination = folder_path
                 self.destEdit.setText(folder_path)
-            print(f"{folder.capitalize()}: {folder_path}")
+            write_log(f"{folder.capitalize()}: {folder_path}")
 
     @Slot()  # Configuration
     def config_action(self): print("Configuration...")
@@ -119,24 +141,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         try:
             deletions = get_deletions(self.source, self.destination)
             if deletions:
-                print(f"{len(deletions)} deletions found.")
+                write_log(f"{len(deletions)} deletions found.")
                 for file in deletions:
                     item = QListWidgetItem(file)
                     item.setFlags(item.flags() |
                                   Qt.ItemFlag.ItemIsUserCheckable)
                     item.setCheckState(Qt.CheckState.Unchecked)
                     self.delList.addItem(item)
-                self.statusbar.showMessage("Deletions listed, "
-                                           "ready to synchronize.")
             else:
-                self.statusbar.showMessage("No deletions found, "
-                                           "ready to synchronize.")
+                write_log("No deletions found, ready to synchronize.")
+            self.statusbar.showMessage("Ready to synchronize.")
             self.syncButton.setEnabled(True)
         except Exception as e:
             # TODO alert
-            print("Error while listing deletions. See session log for details.")
-            with open('session.log', 'a', encoding="utf-8") as log:
-                log.write(f"Error while listing deletions: {e}")
+            write_log("Error while listing deletions.", e)
             self.statusbar.showMessage("Deletions could not be listed.")
 
 
@@ -151,29 +169,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for entity in entities:
             try:
                 delete_entity(entity)
-                print(f"{entity} deleted.")
+                write_log(f"{entity} deleted.")
             except Exception as e:
-                print(f"Error - {e}")
-                with open('session.log', 'a', encoding="utf-8") as log:
-                    log.write(f"Error - {e}")
+                write_log(f"Error while deleting {entity}!", e)
+        write_log(f"{len(entities)} entities deleted.")
 
         # Synchronize source and destination with rsync
-        print(f"Syncing from {self.source} to {self.destination}...")
+        write_log(f"Syncing from {self.source} to {self.destination}...")
         try:
+            self.statusbar.showMessage("Synchronizing...")
             result = sync(self.source, self.destination)
             print(result.stdout)
             print(result.stderr, file=sys.stderr)
             if result.returncode == 0:
-                print("Synchronization finished.")
+                write_log("Synchronization finished.")
                 self.statusbar.showMessage("Synchronization finished.")
             else:
-                print("Rsync error, see session log for details!")
-                with open('session.log', 'a', encoding="utf-8") as log:
-                    log.write(f"Rsync error: {result.returncode}")
+                write_log("Error while running rsync!", result.returncode)
         except Exception as e:
-            print(f"Error while synchronizing: {e}")
-            with open('session.log', 'a', encoding="utf-8") as log:
-                log.write(f"Error while synchronizing: {e}")
+            write_log("Error while synchronizing!", e)
         finally:
             self.delList.clear()
 
@@ -191,19 +205,16 @@ def main():
         create_session_log()
     except Exception as e:
         # TODO alert
-        print(f"Error while creating session log: {e}")
+        write_log(f"Error while creating session log: {e}")
         window.statusbar.showMessage("Session log could not be created.")
 
     # Load config file
     try:
         window.config = load_config()
-        print("Configurations loaded.")
+        write_log("Configurations loaded.")
     except Exception as e:
         # TODO alert
-        print("Error while loading configurations. "
-              "See session log for details.")
-        with open('session.log', 'a', encoding="utf-8") as log:
-            log.write(f"Error while loading configurations: {e}")
+        write_log("Error while loading configurations!", e)
         window.statusbar.showMessage("Configurations could not be loaded.")
 
     # Determine source and destination
@@ -215,22 +226,18 @@ def main():
         window.destination = window.config['destination']
     if not path.exists(window.source):
         # TODO alert
-        print(f"Invalid source: {window.source}")
+        write_log(f"Warning! Invalid source: {window.source}")
         window.source = None
-        with open('session.log', 'a', encoding="utf-8") as log:
-            log.write(f"Invalid source: {window.source}")
     else:
         window.sourceEdit.setText(window.source)
     if not path.exists(window.destination):
         # TODO alert
-        print(f"Invalid destination: {window.destination}")
+        write_log(f"Warning! Invalid destination: {window.destination}")
         window.destination = None
-        with open('session.log', 'a', encoding="utf-8") as log:
-            log.write(f"Invalid destination: {window.destination}")
     else:
         window.destEdit.setText(window.destination)
     window.statusbar.showMessage("Ready.")
-    print(f"Source: {window.source}\nDestination: {window.destination}")
+    write_log(f"Source: {window.source}\nDestination: {window.destination}")
 
     # Setting up UI...
     window.show()

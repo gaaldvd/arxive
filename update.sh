@@ -35,6 +35,6 @@ fi
 echo "> Pipfile verification... $(pipenv verify)"
 
 # show package info
-echo "> libgentools: $(pipenv run pip show pyside6)"
+echo "> pyside6: $(pipenv run pip show pyside6)"
 
 echo "> Done. Goodbye!"
