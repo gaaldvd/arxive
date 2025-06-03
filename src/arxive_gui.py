@@ -4,11 +4,12 @@ import sys
 from os.path import expanduser
 from arxive_common import *
 
-from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QFileDialog,
-                               QSizePolicy, QListWidgetItem)
+from PySide6.QtWidgets import (QApplication, QMainWindow, QDialog, QWidget,
+                               QFileDialog, QSizePolicy, QListWidgetItem)
 from PySide6.QtCore import Slot, Qt
 from PySide6.QtGui import QAction, QIcon, QTextCursor, QColor, QTextCharFormat
 from ui.MainWindow import Ui_MainWindow
+from ui.About import Ui_Dialog
 
 
 # Custom class to redirect console output
@@ -51,8 +52,8 @@ class OutputRedirector:
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
-
         self.setupUi(self)
+
         self.source, self.destination, self.config = None, None, None
         self.listdelButton.setFocus()
 
@@ -127,7 +128,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def config_action(self): print("Configuration...")
 
     @Slot()   # About
-    def about_action(self): print("About...")
+    def about_action(self):
+        dialog = AboutDialog(self)
+        dialog.exec()
 
     @Slot()  # Exit
     def exit_action(self): sys.exit("Goodbye!")
@@ -191,6 +194,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         finally:
             self.delList.clear()
 
+
+class AboutDialog(Ui_Dialog, QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setupUi(self)
+
+        self.description.setText("arXive: a CLI/GUI frontend for "
+                                 "<a href='https://rsync.samba.org/'>rsync</a>")
+        self.version.setText("v0.0")
+        # TODO anchor to the top of the README
+        self.link.setText("<a href='https://github.com/gaaldvd/arxive'>"
+                          "Visit GitHub page</a>")
 
 
 # main function
