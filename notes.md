@@ -27,3 +27,10 @@ requirements: git, python3, pipenv, rsync
 update: `arxive -u`
 
 run in CLI or GUI mode: `arxive -c/-g [SOURCE] [DESTINATION]`
+
+## options
+
+### default:
+
+--archive, -a            archive mode is -rlptgoD (no -A,-X,-U,-N,-H)
+--verbose, -v            increase verbosity

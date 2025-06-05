@@ -6,10 +6,11 @@ from arxive_common import *
 
 from PySide6.QtWidgets import (QApplication, QMainWindow, QDialog, QWidget,
                                QFileDialog, QSizePolicy, QListWidgetItem)
-from PySide6.QtCore import Slot, Qt
+from PySide6.QtCore import Slot, Signal, Qt
 from PySide6.QtGui import QAction, QIcon, QTextCursor, QColor, QTextCharFormat
 from ui.MainWindow import Ui_MainWindow
-from ui.About import Ui_Dialog
+from ui.About import Ui_Dialog as AboutDlg
+from ui.Config import Ui_Dialog as ConfigDlg
 
 
 # Custom class to redirect console output
@@ -70,14 +71,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Set source
         source_action = QAction(QIcon('src/ui/source.svg'), "Add source", self)
-        source_action.triggered.connect(lambda: self.set_folder("source"))
+        source_action.triggered.connect(
+            lambda: self.set_folder(self, "source", "main"))
         self.toolbar.addAction(source_action)
 
         # Set destination
         destination_action = QAction(
             QIcon('src/ui/destination.svg'), "Add destination", self)
         destination_action.triggered.connect(
-            lambda: self.set_folder("destination"))
+            lambda: self.set_folder(self, "destination", "main"))
         self.toolbar.addAction(destination_action)
 
         # <--- left side
@@ -111,8 +113,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # ----- TOOLBAR -----
 
-    @Slot()  # Set source/destination
-    def set_folder(self, folder):
+    # @Slot()
+    @staticmethod  # Set source/destination
+    def set_folder(self, folder, sender):
         folder_path = QFileDialog.getExistingDirectory(
             parent=self, caption=f"Select {folder}", dir=expanduser("~"))
         if folder_path:
@@ -122,10 +125,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else:
                 self.destination = folder_path
                 self.destEdit.setText(folder_path)
-            write_log(f"{folder.capitalize()}: {folder_path}")
+            if sender == "main":
+                write_log(f"{folder.capitalize()}: {folder_path}")
 
     @Slot()  # Configuration
-    def config_action(self): print("Configuration...")
+    def config_action(self):
+        dialog = ConfigDialog(self.config)
+        dialog.config_updated.connect(self.config_updated)
+        dialog.exec()
+
+    @Slot()
+    def config_updated(self):
+        print("config updated")
+        self.config = load_config()
+        self.source = self.config['source']
+        self.destination = self.config['destination']
+        self.sourceEdit.setText(self.source)
+        self.destEdit.setText(self.destination)
+        write_log(f"Source: {self.source}\nDestination: {self.destination}")
 
     @Slot()   # About
     def about_action(self):
@@ -159,7 +176,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # TODO alert
             write_log("Error while listing deletions.", e)
             self.statusbar.showMessage("Deletions could not be listed.")
-
 
     @Slot()
     def run_sync(self):
@@ -195,7 +211,36 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.delList.clear()
 
 
-class AboutDialog(Ui_Dialog, QDialog):
+class ConfigDialog(ConfigDlg, QDialog):
+    config_updated = Signal(dict)
+    def __init__(self, config, parent=None):
+        super().__init__(parent)
+        self.setupUi(self)
+
+        # Default source/destination
+        self.sourceEdit.setText(config['source'])
+        self.destEdit.setText(config['destination'])
+        self.sourceButton.clicked.connect(
+            lambda: MainWindow.set_folder(self, "source", "config"))
+        self.destButton.clicked.connect(
+            lambda: MainWindow.set_folder(self, "destination", "config"))
+
+        self.buttonBox.accepted.connect(lambda: self.save(config))
+
+
+    @Slot()
+    def save(self, config):
+        config['source'] = self.sourceEdit.text()
+        config['destination'] = self.destEdit.text()
+        print(config)
+        try:
+            save_config(config)
+        except Exception as e:
+            write_log("Error while saving configurations!", e)
+        self.config_updated.emit(config)
+
+
+class AboutDialog(AboutDlg, QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
