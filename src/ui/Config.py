@@ -94,10 +94,10 @@ class Ui_Dialog(object):
 
     def retranslateUi(self, Dialog):
         Dialog.setWindowTitle(QCoreApplication.translate("Dialog", u"Configuration", None))
-        self.source.setText(QCoreApplication.translate("Dialog", u"Default source", None))
+        self.source.setText(QCoreApplication.translate("Dialog", u"Default source:", None))
         self.sourceButton.setText(QCoreApplication.translate("Dialog", u"Select", None))
-        self.destination.setText(QCoreApplication.translate("Dialog", u"Default destination", None))
+        self.destination.setText(QCoreApplication.translate("Dialog", u"Default destination:", None))
         self.destButton.setText(QCoreApplication.translate("Dialog", u"Select", None))
-        self.options.setText(QCoreApplication.translate("Dialog", u"Options", None))
+        self.options.setText(QCoreApplication.translate("Dialog", u"Additional options:", None))
     # retranslateUi
 

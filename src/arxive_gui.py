@@ -55,7 +55,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__()
         self.setupUi(self)
 
-        self.source, self.destination, self.config = None, None, None
+        self.config = None
+        self.source, self.destination, self.options = None, None, None
         self.listdelButton.setFocus()
 
         # Redirect console output
@@ -136,13 +137,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @Slot()
     def config_updated(self):
-        print("config updated")
         self.config = load_config()
+
+        # Source/destination
         self.source = self.config['source']
         self.destination = self.config['destination']
         self.sourceEdit.setText(self.source)
         self.destEdit.setText(self.destination)
         write_log(f"Source: {self.source}\nDestination: {self.destination}")
+        if self.config['options']:
+            write_log(f"Additional options: "
+                      f"{", ".join(self.config['options'])}")
 
     @Slot()   # About
     def about_action(self):
@@ -225,14 +230,25 @@ class ConfigDialog(ConfigDlg, QDialog):
         self.destButton.clicked.connect(
             lambda: MainWindow.set_folder(self, "destination", "config"))
 
+        # Additional options
+        if config['options']:
+            self.optionsEdit.setPlainText(", ".join(config['options']))
+
         self.buttonBox.accepted.connect(lambda: self.save(config))
 
 
     @Slot()
     def save(self, config):
+
+        # Default source/destination
         config['source'] = self.sourceEdit.text()
         config['destination'] = self.destEdit.text()
-        print(config)
+
+        # Additional options
+        config['options'] = list(set(
+            self.optionsEdit.toPlainText().split(", "))) if (
+            self.optionsEdit.toPlainText().strip()) else None
+
         try:
             save_config(config)
         except Exception as e:
@@ -277,7 +293,7 @@ def main():
         write_log("Error while loading configurations!", e)
         window.statusbar.showMessage("Configurations could not be loaded.")
 
-    # Determine source and destination
+    # Determine source, destination and options
     window.source, window.destination = None, None
     if len(sys.argv) > 1:
         window.source, window.destination = sys.argv[1], sys.argv[2]
@@ -296,8 +312,11 @@ def main():
         window.destination = None
     else:
         window.destEdit.setText(window.destination)
+        window.options = window.config['options']
     window.statusbar.showMessage("Ready.")
     write_log(f"Source: {window.source}\nDestination: {window.destination}")
+    if window.options:
+        write_log(f"Additional options: {", ".join(window.options)}")
 
     # Setting up UI...
     window.show()

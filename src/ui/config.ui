@@ -27,7 +27,7 @@
        <item row="0" column="0">
         <widget class="QLabel" name="source">
          <property name="text">
-          <string>Default source</string>
+          <string>Default source:</string>
          </property>
         </widget>
        </item>
@@ -44,7 +44,7 @@
        <item row="1" column="0">
         <widget class="QLabel" name="destination">
          <property name="text">
-          <string>Default destination</string>
+          <string>Default destination:</string>
          </property>
         </widget>
        </item>
@@ -63,7 +63,7 @@
      <item>
       <widget class="QLabel" name="options">
        <property name="text">
-        <string>Options</string>
+        <string>Additional options:</string>
        </property>
       </widget>
      </item>
