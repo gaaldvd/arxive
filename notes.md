@@ -16,15 +16,19 @@ requirements: git, python3, pipenv, rsync
     - reload configuration: `source ~/.profile`
     - verify: `echo $PATH`
   - create symlink: `ln -s /home/USER/PATH/TO/ARXIVE/arxive.sh /home/USER/PATH/TO/ARXIVE/arxive`
-  - desktop entry
+  - desktop entry:
+```bash
+cat >> ~/.local/share/applications/arxive.desktop <<EOF
+[Desktop Entry]
+Type=Application
+Name=arXive
+Exec=sh /home/USER/PATH/TO/ARXIVE/arxive.sh -g
+Terminal=false
+Icon=/home/USER/PATH/TO/ARXIVE/src/ui/arxive.svg
+Categories=System
+EOF
+```
 
 update: `arxive -u`
 
 run in CLI or GUI mode: `arxive -c/-g [SOURCE] [DESTINATION]`
-
-## options
-
-### default:
-
---archive, -a            archive mode is -rlptgoD (no -A,-X,-U,-N,-H)
---verbose, -v            increase verbosity

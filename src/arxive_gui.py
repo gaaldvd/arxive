@@ -187,7 +187,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.statusbar.showMessage("Ready to synchronize.")
             self.syncButton.setEnabled(True)
         except Exception as e:
-            # TODO alert
             write_log("Error while listing deletions.", e)
             self.statusbar.showMessage("Deletions could not be listed.")
 
@@ -211,7 +210,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         write_log(f"Syncing from {self.source} to {self.destination}...")
         try:
             self.statusbar.showMessage("Synchronizing...")
-            result = sync(self.source, self.destination)
+            result = sync(self.source, self.destination, self.config['options'])
             print(result.stdout)
             print(result.stderr, file=sys.stderr)
             if result.returncode == 0:
@@ -260,7 +259,14 @@ class ConfigDialog(ConfigDlg, QDialog):
         config['options'] = list(set(
             self.optionsEdit.toPlainText().split(", "))) if (
             self.optionsEdit.toPlainText().strip()) else None
-
+        if config['options']:
+            if bool(set(config['options'])
+                    & {"-av", "--archive", "-a", "--verbose", "-v"}):
+                write_log("Warning: --archive (-a) and --verbose (-v) "
+                          "are default options (-av)!")
+                config['options'] = [option for option in config['options']
+                                     if option not in ("-av", "--archive", "-a",
+                                                       "--verbose", "-v")]
         try:
             save_config(config)
         except Exception as e:
@@ -276,7 +282,6 @@ class AboutDialog(AboutDlg, QDialog):
         self.description.setText("arXive: a CLI/GUI frontend for "
                                  "<a href='https://rsync.samba.org/'>rsync</a>")
         self.version.setText("v0.0")
-        # TODO anchor to the top of the README
         url = "https://github.com/gaaldvd/arxive?tab=readme-ov-file#arXive"
         self.link.setText(f"<a href='{url}'>Visit GitHub page</a>")
 
@@ -292,7 +297,6 @@ def main():
     try:
         create_session_log()
     except Exception as e:
-        # TODO alert
         write_log(f"Error while creating session log: {e}")
         window.statusbar.showMessage("Session log could not be created.")
 
@@ -301,7 +305,6 @@ def main():
         window.config = load_config()
         write_log("Configurations loaded.")
     except Exception as e:
-        # TODO alert
         write_log("Error while loading configurations!", e)
         window.statusbar.showMessage("Configurations could not be loaded.")
 
@@ -313,13 +316,11 @@ def main():
         window.source = window.config['source']
         window.destination = window.config['destination']
     if not path.exists(window.source):
-        # TODO alert
         write_log(f"Warning! Invalid source: {window.source}")
         window.source = None
     else:
         window.sourceEdit.setText(window.source)
     if not path.exists(window.destination):
-        # TODO alert
         write_log(f"Warning! Invalid destination: {window.destination}")
         window.destination = None
     else:

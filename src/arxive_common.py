@@ -61,6 +61,10 @@ def delete_entity(entity_path):
         raise Exception(f"Error: {entity_path} could not be deleted")
 
 
-def sync(source, destination):
-    cmd = ["rsync", "-av", source, destination]
+def sync(source, destination, options=None):
+    cmd = ["rsync", "-av"]
+    if options:
+        for option in options:
+            cmd.append(option)
+    cmd.extend([source, destination])
     return run(cmd, text=True, capture_output=True)

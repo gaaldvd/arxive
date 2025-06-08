@@ -18,6 +18,7 @@ def main():
         config = load_config()
     except Exception as e:
         write_log("Error while loading configurations!", e)
+        config = None
         close("Goodbye!")
 
     # Determine source and destination
@@ -72,7 +73,7 @@ def main():
     else:
         write_log(f"Syncing from {source} to {destination}...")
         try:
-            result = sync(source, destination)
+            result = sync(source, destination, config['options'])
             if result.returncode == 0:
                 write_log("\nSynchronization finished. Goodbye!")
             else:
