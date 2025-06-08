@@ -1,3 +1,15 @@
-# arxive
+# arXive
 
-A simple CLI/GUI application to create backups of your data.
+A simple CLI/GUI frontend for [rsync](https://rsync.samba.org/).
+
+## Installation
+
+## Usage
+
+### CLI
+
+### GUI
+
+## Update
+
+## Errors

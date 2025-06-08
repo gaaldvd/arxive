@@ -6,11 +6,12 @@ chmod +x arxive.sh
 chmod +x update.sh
 
 install_dir=$(pwd)
+home_dir="$HOME"
 
 echo "> Adding arXive to PATH..."
-echo 'export PATH="'$install_dir':$PATH"' >> ~/.profile
-source ~/.profile
-echo $PATH
+echo "export PATH=\"${install_dir}:\$PATH\"" >> ~/.profile
+source "$home_dir"/.profile
+echo "$PATH"
 
 echo "> Creating symlink..."
 ln -s "$install_dir"/arxive.sh "$install_dir"/arxive

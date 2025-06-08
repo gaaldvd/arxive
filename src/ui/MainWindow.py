@@ -17,8 +17,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QGridLayout, QLabel, QLineEdit,
     QListWidget, QListWidgetItem, QMainWindow, QPlainTextEdit,
-    QPushButton, QSizePolicy, QSpacerItem, QStatusBar,
-    QToolBar, QVBoxLayout, QWidget)
+    QPushButton, QRadioButton, QSizePolicy, QSpacerItem,
+    QStatusBar, QToolBar, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -39,16 +39,16 @@ class Ui_MainWindow(object):
         self.sessionCtrl.setSizePolicy(sizePolicy)
         self.gridLayout = QGridLayout(self.sessionCtrl)
         self.gridLayout.setObjectName(u"gridLayout")
-        self.destEdit = QLineEdit(self.sessionCtrl)
-        self.destEdit.setObjectName(u"destEdit")
+        self.sourceEdit = QLineEdit(self.sessionCtrl)
+        self.sourceEdit.setObjectName(u"sourceEdit")
         sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.destEdit.sizePolicy().hasHeightForWidth())
-        self.destEdit.setSizePolicy(sizePolicy1)
-        self.destEdit.setMinimumSize(QSize(300, 0))
+        sizePolicy1.setHeightForWidth(self.sourceEdit.sizePolicy().hasHeightForWidth())
+        self.sourceEdit.setSizePolicy(sizePolicy1)
+        self.sourceEdit.setMinimumSize(QSize(300, 0))
 
-        self.gridLayout.addWidget(self.destEdit, 1, 1, 1, 1)
+        self.gridLayout.addWidget(self.sourceEdit, 0, 1, 1, 1)
 
         self.destLabel = QLabel(self.sessionCtrl)
         self.destLabel.setObjectName(u"destLabel")
@@ -56,6 +56,22 @@ class Ui_MainWindow(object):
         self.destLabel.setSizePolicy(sizePolicy1)
 
         self.gridLayout.addWidget(self.destLabel, 1, 0, 1, 1)
+
+        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.gridLayout.addItem(self.horizontalSpacer_2, 1, 2, 1, 1)
+
+        self.destEdit = QLineEdit(self.sessionCtrl)
+        self.destEdit.setObjectName(u"destEdit")
+        sizePolicy1.setHeightForWidth(self.destEdit.sizePolicy().hasHeightForWidth())
+        self.destEdit.setSizePolicy(sizePolicy1)
+        self.destEdit.setMinimumSize(QSize(300, 0))
+
+        self.gridLayout.addWidget(self.destEdit, 1, 1, 1, 1)
+
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.gridLayout.addItem(self.horizontalSpacer, 0, 2, 1, 1)
 
         self.listdelButton = QPushButton(self.sessionCtrl)
         self.listdelButton.setObjectName(u"listdelButton")
@@ -65,7 +81,15 @@ class Ui_MainWindow(object):
         sizePolicy2.setHeightForWidth(self.listdelButton.sizePolicy().hasHeightForWidth())
         self.listdelButton.setSizePolicy(sizePolicy2)
 
-        self.gridLayout.addWidget(self.listdelButton, 0, 3, 1, 1)
+        self.gridLayout.addWidget(self.listdelButton, 0, 4, 1, 1)
+
+        self.syncButton = QPushButton(self.sessionCtrl)
+        self.syncButton.setObjectName(u"syncButton")
+        self.syncButton.setEnabled(False)
+        sizePolicy2.setHeightForWidth(self.syncButton.sizePolicy().hasHeightForWidth())
+        self.syncButton.setSizePolicy(sizePolicy2)
+
+        self.gridLayout.addWidget(self.syncButton, 1, 4, 1, 1)
 
         self.sourceLabel = QLabel(self.sessionCtrl)
         self.sourceLabel.setObjectName(u"sourceLabel")
@@ -74,29 +98,11 @@ class Ui_MainWindow(object):
 
         self.gridLayout.addWidget(self.sourceLabel, 0, 0, 1, 1)
 
-        self.sourceEdit = QLineEdit(self.sessionCtrl)
-        self.sourceEdit.setObjectName(u"sourceEdit")
-        sizePolicy1.setHeightForWidth(self.sourceEdit.sizePolicy().hasHeightForWidth())
-        self.sourceEdit.setSizePolicy(sizePolicy1)
-        self.sourceEdit.setMinimumSize(QSize(300, 0))
+        self.delallRadio = QRadioButton(self.sessionCtrl)
+        self.delallRadio.setObjectName(u"delallRadio")
+        self.delallRadio.setEnabled(False)
 
-        self.gridLayout.addWidget(self.sourceEdit, 0, 1, 1, 1)
-
-        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.gridLayout.addItem(self.horizontalSpacer, 0, 2, 1, 1)
-
-        self.syncButton = QPushButton(self.sessionCtrl)
-        self.syncButton.setObjectName(u"syncButton")
-        self.syncButton.setEnabled(False)
-        sizePolicy2.setHeightForWidth(self.syncButton.sizePolicy().hasHeightForWidth())
-        self.syncButton.setSizePolicy(sizePolicy2)
-
-        self.gridLayout.addWidget(self.syncButton, 1, 3, 1, 1)
-
-        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.gridLayout.addItem(self.horizontalSpacer_2, 1, 2, 1, 1)
+        self.gridLayout.addWidget(self.delallRadio, 1, 3, 1, 1)
 
 
         self.verticalLayout.addWidget(self.sessionCtrl)
@@ -132,8 +138,9 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"arXive", None))
         self.destLabel.setText(QCoreApplication.translate("MainWindow", u"Destination:", None))
         self.listdelButton.setText(QCoreApplication.translate("MainWindow", u"List deletions", None))
-        self.sourceLabel.setText(QCoreApplication.translate("MainWindow", u"Source:", None))
         self.syncButton.setText(QCoreApplication.translate("MainWindow", u"Run sync", None))
+        self.sourceLabel.setText(QCoreApplication.translate("MainWindow", u"Source:", None))
+        self.delallRadio.setText(QCoreApplication.translate("MainWindow", u"Delete all", None))
         self.toolbar.setWindowTitle(QCoreApplication.translate("MainWindow", u"toolbar", None))
     # retranslateUi
 

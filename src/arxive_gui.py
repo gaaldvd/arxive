@@ -2,6 +2,7 @@
 
 import sys
 from os.path import expanduser
+
 from arxive_common import *
 
 from PySide6.QtWidgets import (QApplication, QMainWindow, QDialog, QWidget,
@@ -107,6 +108,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.listdelButton.clicked.connect(self.list_deletions)
         self.syncButton.clicked.connect(self.run_sync)
+        self.delallRadio.clicked.connect(self.mark_all)
 
     # -----------------
     # ----- SLOTS -----
@@ -160,13 +162,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # -------------------
 
     @Slot()
+    def mark_all(self):
+        for index in range(self.delList.count()):
+            self.delList.item(index).setCheckState(Qt.CheckState.Checked)
+
+
+    @Slot()
     def list_deletions(self):
         self.statusbar.showMessage("Listing deletions...")
         self.delList.clear()
         try:
             deletions = get_deletions(self.source, self.destination)
             if deletions:
-                write_log(f"{len(deletions)} deletions found.")
+                write_log(f"{len(deletions)} deletion(s) found.")
+                self.delallRadio.setEnabled(True)
                 for file in deletions:
                     item = QListWidgetItem(file)
                     item.setFlags(item.flags() |
@@ -186,10 +195,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def run_sync(self):
 
         # Delete files/folders
-        entities = [path.join(self.destination, self.delList.item(index).text())
-                 for index in range(self.delList.count())
-                 if self.delList.item(index).checkState()
-                 == Qt.CheckState.Checked]
+        entities = [path.join(self.destination,self.delList.item(index).text())
+                    for index in range(self.delList.count())
+                    if self.delList.item(index).checkState()
+                    == Qt.CheckState.Checked]
         for entity in entities:
             try:
                 delete_entity(entity)
@@ -214,6 +223,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             write_log("Error while synchronizing!", e)
         finally:
             self.delList.clear()
+            self.delallRadio.setChecked(False)
+            self.delallRadio.setEnabled(False)
+            self.syncButton.setEnabled(False)
 
 
 class ConfigDialog(ConfigDlg, QDialog):
@@ -265,8 +277,8 @@ class AboutDialog(AboutDlg, QDialog):
                                  "<a href='https://rsync.samba.org/'>rsync</a>")
         self.version.setText("v0.0")
         # TODO anchor to the top of the README
-        self.link.setText("<a href='https://github.com/gaaldvd/arxive'>"
-                          "Visit GitHub page</a>")
+        url = "https://github.com/gaaldvd/arxive?tab=readme-ov-file#arXive"
+        self.link.setText(f"<a href='{url}'>Visit GitHub page</a>")
 
 
 # main function
