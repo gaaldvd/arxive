@@ -25,4 +25,4 @@ The main feature of the application (besides serving as a frontend) is that it e
 
 ## Errors
 
-Any error can be reported through [e-mail](mailto:gaaldavid[at]tuta.io?subject=[GitHub]%20arXive%20error) with the exact error message and/or screenshot. Alternatively, an [issue](https://github.com/gaaldvd/arxive/issues) can be opened.
+Any error can be reported through [e-mail](mailto:gaaldvd[at]proton.me?subject=[GitHub]%20arXive%20error) with the exact error message and/or screenshot. Alternatively, an [issue](https://github.com/gaaldvd/arxive/issues) can be opened.

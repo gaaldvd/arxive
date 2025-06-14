@@ -26,5 +26,6 @@ arxive
 arxive.desktop
 session.log
 test
+nasinfo
 src/test_cli.py
 src/test_gui.py
