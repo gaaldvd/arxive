@@ -91,6 +91,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.toolbar.addWidget(spacer)
         # right side --->
 
+        # Update
+        update_action = QAction(
+            QIcon('src/ui/update.svg'), "Update", self)
+        update_action.triggered.connect(self.update_action)
+        self.toolbar.addAction(update_action)
+
         # Configuration
         config_action = QAction(
             QIcon('src/ui/configure.svg'), "Configuration", self)
@@ -133,6 +139,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.destEdit.setText(folder_path)
             if sender == "main":
                 write_log(f"{folder.capitalize()}: {folder_path}")
+
+    @Slot()
+    def update_action(self):
+        write_log("Updating...")
 
     @Slot()  # Configuration
     def config_action(self):
