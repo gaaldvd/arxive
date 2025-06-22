@@ -23,13 +23,14 @@ def main():
 
     # Determine source and destination
     if not (path.exists(argv[1]) or path.exists(argv[2])):
-        write_log("Invalid source/destination!")
+        write_log("Error: Invalid source or destination!")
         close()
     source, destination = argv[1], argv[2]
     write_log(f"Source: {source}\nDestination: {destination}")
 
     # Get the list of files deleted from source
     try:
+        write_log("Listing deletions...")
         deletions = get_deletions(source, destination)
     except Exception as e:
         deletions = None
@@ -37,7 +38,7 @@ def main():
         close()
 
     # Prompt the user for deletions and delete files/folders
-    write_log(f"\n{len(deletions)} deletions found.\n")
+    write_log(f"\n{len(deletions)} deletion(s) found.\n")
     if len(deletions) > 0:
         for entity in deletions:
             print(f"  {entity}")
