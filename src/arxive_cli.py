@@ -21,6 +21,13 @@ def main():
         config = None
         close("Goodbye!")
 
+    # try:
+    #     config = Config()
+    # except Exception as e:
+    #     write_log("Error while loading configurations!", e)
+    #     config = None
+    #     close("Goodbye!")
+
     # Determine source and destination
     if not (path.exists(argv[1]) or path.exists(argv[2])):
         write_log("Error: Invalid source or destination!")
@@ -74,7 +81,7 @@ def main():
     else:
         write_log(f"Syncing from {source} to {destination}...")
         try:
-            result = sync(source, destination, config['options'])
+            result = sync(source, destination, config.options)
             if result.returncode == 0:
                 write_log("\nSynchronization finished. Goodbye!")
             else:
