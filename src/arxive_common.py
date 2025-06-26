@@ -41,20 +41,21 @@ class Session:
                 f"/session.log")
 
     def __init__(self):
-        self.create_log()
+        self.init_log()
         self.source = None
         self.destination = None
         self.options = None
         self.deletions = None
+        self.deleted, self.errors = 0, 0
 
-    def create_log(self):
+    def init_log(self):
         with open(self.log_path, 'w', encoding="utf-8") as log:
             log.write(f"=============================================\n"
                       f"arXive session log -- "
                       f"{datetime.now().strftime("%Y %b %d. - %X")}\n"
                       f"=============================================\n")
 
-    def write_log(self, msg, exception=None):
+    def log(self, msg, exception=None):
         print(msg)
         if exception:
             msg = f"{msg} - {exception}"
@@ -75,11 +76,13 @@ class Session:
                 deletions.append(filepath)
         return deletions
 
-    def delete_entry(self, entity_path):
+    def delete_entity(self, entity_path):
         if path.isfile(entity_path):
             remove(entity_path)
+            self.deleted += 1
         elif path.isdir(entity_path):
             rmdir(entity_path)
+            self.deleted += 1
         else:
             raise Exception(f"Error: {entity_path} could not be deleted.")
 
