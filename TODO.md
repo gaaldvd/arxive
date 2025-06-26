@@ -1,5 +1,7 @@
 # arXive todo
 
+- documentation
+
 ## test issues
 
 - remote isdir() if not mounted up? - rsync exit code 11
@@ -10,9 +12,6 @@
 
 ## common
 
-- config class
-- session class
-
 ## CLI
 
 - config editing
@@ -21,8 +20,8 @@
 ## GUI
 
 - if source/destination changes the sync button should be disabled
+- if source/destination is entered manually, the vars should be checked and changed
 - toolbar
   - update button: open a terminal and run update.sh?
   - additional options
   - use defaults
-- dialogs in sep src files
