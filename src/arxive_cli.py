@@ -7,7 +7,7 @@ from arxive_common import *
 def main():
     """Main function."""
 
-    # Create session log
+    # Creating session log
     try:
         session = Session()
         session.log("Session log created.")
@@ -16,7 +16,7 @@ def main():
         session = None
         close("Goodbye!")
 
-    # Load config file
+    # Loading config file
     try:
         config = Config()
         session.log("Configurations loaded.")
@@ -25,12 +25,22 @@ def main():
         config = None
         close("Goodbye!")
 
-    # Determine source and destination
-    if not (path.exists(argv[1]) or path.exists(argv[2])):
-        session.log("Error: Invalid source or destination!")
-        close("Goodbye!")
-    session.source, session.destination = argv[1], argv[2]
-    session.log(f"Source: {session.source}\nDestination: {session.destination}")
+    # Setting source and destination
+    if (path.exists(session.source) and path.exists(session.destination)
+            and session.source != session.destination):
+        session.source, session.destination = argv[1], argv[2]
+        session.log(f"Source: {session.source}\n"
+                    f"Destination: {session.destination}")
+    else:
+        if not path.exists(session.source):
+            session.log("Error: Invalid source!")
+            close("Goodbye!")
+        if not path.exists(session.destination):
+            session.log("Error: Invalid destination!")
+            close("Goodbye!")
+        if session.source == session.destination:
+            session.log("Error: Source and destination must be different!")
+            close("Goodbye!")
 
     # Listing deletions
     try:
@@ -41,7 +51,7 @@ def main():
         session.log("Error while listing deletions!", e)
         close("Goodbye!")
 
-    # Prompt the user for deletions and delete files/folders
+    # Prompting the user for deletions and deleting files/directories
     session.log(f"\n{len(session.deletions)} deletion(s) found.\n")
     if len(session.deletions) > 0:
         for entity in session.deletions:
@@ -51,15 +61,15 @@ def main():
         if choice == "a":
             entities = [path.join(session.destination, file)
                         for file in session.deletions]
-            deleted = 0
+            session.deleted = 0
             for entity in entities:
                 try:
                     session.delete_entity(entity)
-                    deleted += 1
+                    session.deleted += 1
                     session.log(f"{entity} deleted.")
                 except Exception as e:
                     session.log(f"Error while deleting {entity}!", e)
-            session.log(f"{deleted} entities deleted.")
+            session.log(f"{session.deleted} entities deleted.")
         elif choice == "n":
             session.log(f"Deletion of {len(session.deletions)} "
                         f"entities skipped.")
@@ -69,17 +79,17 @@ def main():
                         if input(f"Delete "
                                  f"{path.join(session.destination, entity)} "
                                  f"[Y/n]: ").strip().lower() != "n"]
-            deleted = 0
+            session.deleted = 0
             for entity in entities:
                 try:
                     session.delete_entity(entity)
-                    deleted += 1
+                    session.deleted += 1
                     session.log(f"{entity} deleted.")
                 except Exception as e:
                     session.log(f"Error while deleting {entity}!", e)
-            session.log(f"{deleted} entities deleted.")
+            session.log(f"{session.deleted} entities deleted.")
 
-    # Synchronize source and destination with rsync
+    # Synchronizing source and destination with rsync
     choice = input("\nProceed with synchronization? [Y/n]: ").strip().lower()
     if choice == "n":
         session.log("\nSynchronization stopped. Goodbye!")

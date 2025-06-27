@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'mainwindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.9.0
+## Created by: Qt User Interface Compiler version 6.9.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -47,6 +47,7 @@ class Ui_MainWindow(object):
         sizePolicy1.setHeightForWidth(self.sourceEdit.sizePolicy().hasHeightForWidth())
         self.sourceEdit.setSizePolicy(sizePolicy1)
         self.sourceEdit.setMinimumSize(QSize(300, 0))
+        self.sourceEdit.setReadOnly(False)
 
         self.gridLayout.addWidget(self.sourceEdit, 0, 1, 1, 1)
 
@@ -66,6 +67,7 @@ class Ui_MainWindow(object):
         sizePolicy1.setHeightForWidth(self.destEdit.sizePolicy().hasHeightForWidth())
         self.destEdit.setSizePolicy(sizePolicy1)
         self.destEdit.setMinimumSize(QSize(300, 0))
+        self.destEdit.setReadOnly(False)
 
         self.gridLayout.addWidget(self.destEdit, 1, 1, 1, 1)
 
@@ -75,6 +77,7 @@ class Ui_MainWindow(object):
 
         self.listdelButton = QPushButton(self.sessionCtrl)
         self.listdelButton.setObjectName(u"listdelButton")
+        self.listdelButton.setEnabled(True)
         sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
         sizePolicy2.setHorizontalStretch(0)
         sizePolicy2.setVerticalStretch(0)
@@ -136,7 +139,9 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"arXive", None))
+        self.sourceEdit.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Set source directory...", None))
         self.destLabel.setText(QCoreApplication.translate("MainWindow", u"Destination:", None))
+        self.destEdit.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Set destination directory...", None))
         self.listdelButton.setText(QCoreApplication.translate("MainWindow", u"List deletions", None))
         self.syncButton.setText(QCoreApplication.translate("MainWindow", u"Run sync", None))
         self.sourceLabel.setText(QCoreApplication.translate("MainWindow", u"Source:", None))
