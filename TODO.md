@@ -5,7 +5,6 @@
 ## test issues
 
 - remote isdir() if not mounted up? - rsync exit code 11
-- CLI: no interruption mode
 - symlink file disappears after update (???)
 
 ## setup
@@ -18,7 +17,6 @@
 
 ## GUI
 
+- additional options qlineedit (validator function to check this and the editor in the config dialog)
 - toolbar
   - update button: open a terminal and run update.sh?
-  - additional options
-  - use defaults

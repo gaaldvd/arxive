@@ -47,7 +47,7 @@ class Ui_MainWindow(object):
         sizePolicy1.setHeightForWidth(self.sourceEdit.sizePolicy().hasHeightForWidth())
         self.sourceEdit.setSizePolicy(sizePolicy1)
         self.sourceEdit.setMinimumSize(QSize(300, 0))
-        self.sourceEdit.setReadOnly(False)
+        self.sourceEdit.setReadOnly(True)
 
         self.gridLayout.addWidget(self.sourceEdit, 0, 1, 1, 1)
 
@@ -67,7 +67,7 @@ class Ui_MainWindow(object):
         sizePolicy1.setHeightForWidth(self.destEdit.sizePolicy().hasHeightForWidth())
         self.destEdit.setSizePolicy(sizePolicy1)
         self.destEdit.setMinimumSize(QSize(300, 0))
-        self.destEdit.setReadOnly(False)
+        self.destEdit.setReadOnly(True)
 
         self.gridLayout.addWidget(self.destEdit, 1, 1, 1, 1)
 

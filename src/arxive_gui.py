@@ -101,6 +101,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             lambda: set_dir(self, "destination"))
         self.toolbar.addAction(destination_action)
 
+        # Use defaults
+        defaults_action = QAction(QIcon('src/ui/defaults.svg'),
+                                  "Use defaults", self)
+        defaults_action.triggered.connect(self.defaults_action)
+        self.toolbar.addAction(defaults_action)
+
         # <--- left side
         self.toolbar.addWidget(spacer)
         # right side --->
@@ -138,6 +144,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # -----------------
 
     # ----- TOOLBAR -----
+
+    @Slot()
+    def defaults_action(self):
+        self.sourceEdit.setText(self.config.source)
+        self.destEdit.setText(self.config.destination)
+        self.session.options = self.config.options
+        self.session.log(f"Source: {self.sourceEdit.text()}\n"
+                         f"Destination: {self.destEdit.text()}")
+        if self.session.options:
+            self.session.log(f"Additional options: "
+                             f"{", ".join(self.session.options)}")
+        self.syncButton.setEnabled(False)
 
     @Slot()
     def update_action(self): print("Updating...")
