@@ -25,10 +25,19 @@ def main():
         config = None
         close("Goodbye!")
 
-    # Setting source and destination
+    no_interrupt = True if argv[3] == "true" else False
+
+    if no_interrupt:
+        session.log("No interruption mode is ACTIVE!")
+
+    # Setting and validating source and destination
+    session.source, session.destination = argv[1], argv[2]
+    if not session.source or not session.destination:
+        session.log("Error: Source and destination must be provided!")
+        close("Goodbye!")
+
     if (path.exists(session.source) and path.exists(session.destination)
             and session.source != session.destination):
-        session.source, session.destination = argv[1], argv[2]
         session.log(f"Source: {session.source}\n"
                     f"Destination: {session.destination}")
     else:
@@ -56,9 +65,12 @@ def main():
     if len(session.deletions) > 0:
         for entity in session.deletions:
             print(f"  {entity}")
-        choice = input("\nDelete [a]ll, [n]one or "
-                       "prompt for each (default)? : ").strip().lower()
-        if choice == "a":
+        if no_interrupt:
+            del_choice = "a"
+        else:
+            del_choice = input("\nDelete [a]ll, [n]one or "
+                               "prompt for each (default)? : ").strip().lower()
+        if del_choice == "a":
             entities = [path.join(session.destination, file)
                         for file in session.deletions]
             session.deleted = 0
@@ -70,7 +82,7 @@ def main():
                 except Exception as e:
                     session.log(f"Error while deleting {entity}!", e)
             session.log(f"{session.deleted} entities deleted.")
-        elif choice == "n":
+        elif del_choice == "n":
             session.log(f"Deletion of {len(session.deletions)} "
                         f"entities skipped.")
         else:
@@ -90,8 +102,12 @@ def main():
             session.log(f"{session.deleted} entities deleted.")
 
     # Synchronizing source and destination with rsync
-    choice = input("\nProceed with synchronization? [Y/n]: ").strip().lower()
-    if choice == "n":
+    if no_interrupt:
+        sync_choice = "y"
+    else:
+        sync_choice = input("\nProceed with synchronization? "
+                            "[Y/n]: ").strip().lower()
+    if sync_choice == "n":
         session.log("\nSynchronization stopped. Goodbye!")
         close("Goodbye!")
     else:

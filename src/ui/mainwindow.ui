@@ -45,7 +45,7 @@
           </size>
          </property>
          <property name="readOnly">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="placeholderText">
           <string>Set source directory...</string>
@@ -93,7 +93,7 @@
           </size>
          </property>
          <property name="readOnly">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="placeholderText">
           <string>Set destination directory...</string>
