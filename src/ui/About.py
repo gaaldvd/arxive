@@ -22,8 +22,8 @@ class Ui_Dialog(object):
     def setupUi(self, Dialog):
         if not Dialog.objectName():
             Dialog.setObjectName(u"Dialog")
-        Dialog.resize(300, 200)
-        Dialog.setMinimumSize(QSize(300, 200))
+        Dialog.resize(400, 200)
+        Dialog.setMinimumSize(QSize(400, 200))
         self.verticalLayout_2 = QVBoxLayout(Dialog)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.verticalLayout = QVBoxLayout()

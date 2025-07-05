@@ -26,6 +26,9 @@ class OutputRedirector:
                 color = QColor("red")
             elif "warning" in text.lower():
                 color = QColor("orange")
+            elif any(keyword in text.lower() for keyword in
+                     ["ready", "finished", "saved"]):
+                color = QColor("green")
             else:
                 color = QColor("black")
 
@@ -141,12 +144,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def config_updated(self):
         self.config = load_config()
 
-        # Source/destination
-        self.source = self.config['source']
-        self.destination = self.config['destination']
-        self.sourceEdit.setText(self.source)
-        self.destEdit.setText(self.destination)
+        # Source
+        # self.source = self.config['source']
+        if not path.exists(self.config['source']):
+            write_log(f"Warning! Invalid source: {self.config['source']}")
+        # self.sourceEdit.setText(self.source)
+
+        # Destination
+        # self.destination = self.config['destination']
+        if not path.exists(self.config['destination']):
+            write_log(f"Warning! Invalid destination: "
+                      f"{self.config['destination']}")
+        # self.destEdit.setText(self.destination)
+
         write_log(f"Source: {self.source}\nDestination: {self.destination}")
+
+        # Options
         if self.config['options']:
             write_log(f"Additional options: "
                       f"{", ".join(self.config['options'])}")
@@ -166,7 +179,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for index in range(self.delList.count()):
             self.delList.item(index).setCheckState(Qt.CheckState.Checked)
 
-
     @Slot()
     def list_deletions(self):
         self.statusbar.showMessage("Listing deletions...")
@@ -174,7 +186,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         try:
             deletions = get_deletions(self.source, self.destination)
             if deletions:
-                write_log(f"{len(deletions)} deletion(s) found.")
+                write_log(f"{len(deletions)} deletion(s) found, "
+                          f"ready to synchronize.")
                 self.delallRadio.setEnabled(True)
                 for file in deletions:
                     item = QListWidgetItem(file)
@@ -186,6 +199,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 write_log("No deletions found, ready to synchronize.")
             self.statusbar.showMessage("Ready to synchronize.")
             self.syncButton.setEnabled(True)
+        except DirWarning as e:
+            write_log(e)
         except Exception as e:
             write_log("Error while listing deletions.", e)
             self.statusbar.showMessage("Deletions could not be listed.")
@@ -198,13 +213,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     for index in range(self.delList.count())
                     if self.delList.item(index).checkState()
                     == Qt.CheckState.Checked]
+        deleted = 0
         for entity in entities:
             try:
                 delete_entity(entity)
+                deleted += 1
                 write_log(f"{entity} deleted.")
             except Exception as e:
                 write_log(f"Error while deleting {entity}!", e)
-        write_log(f"{len(entities)} entities deleted.")
+        write_log(f"{deleted} entities deleted.")
 
         # Synchronize source and destination with rsync
         write_log(f"Syncing from {self.source} to {self.destination}...")
@@ -269,6 +286,7 @@ class ConfigDialog(ConfigDlg, QDialog):
                                                        "--verbose", "-v")]
         try:
             save_config(config)
+            write_log("Configurations saved.")
         except Exception as e:
             write_log("Error while saving configurations!", e)
         self.config_updated.emit(config)
@@ -296,6 +314,7 @@ def main():
     # Create session log
     try:
         create_session_log()
+        write_log("Session log created.")
     except Exception as e:
         write_log(f"Error while creating session log: {e}")
         window.statusbar.showMessage("Session log could not be created.")
@@ -309,27 +328,38 @@ def main():
         window.statusbar.showMessage("Configurations could not be loaded.")
 
     # Determine source, destination and options
-    window.source, window.destination = None, None
-    if len(sys.argv) > 1:
-        window.source, window.destination = sys.argv[1], sys.argv[2]
-    else:
-        window.source = window.config['source']
-        window.destination = window.config['destination']
-    if not path.exists(window.source):
-        write_log(f"Warning! Invalid source: {window.source}")
-        window.source = None
-    else:
-        window.sourceEdit.setText(window.source)
-    if not path.exists(window.destination):
-        write_log(f"Warning! Invalid destination: {window.destination}")
-        window.destination = None
-    else:
-        window.destEdit.setText(window.destination)
+    try:
+        if len(sys.argv) > 1:
+            window.source, window.destination = sys.argv[1], sys.argv[2]
+        else:
+            window.source = window.config['source']
+            window.destination = window.config['destination']
+
+        if window.source != "":
+            if not path.exists(window.source):
+                write_log(f"Warning! Invalid source: {window.source}")
+                window.source = ""
+            else:
+                window.sourceEdit.setText(window.source)
+        if window.destination != "":
+            if not path.exists(window.destination):
+                write_log(f"Warning! Invalid destination: {window.destination}")
+                window.destination = ""
+            else:
+                window.destEdit.setText(window.destination)
+
         window.options = window.config['options']
-    window.statusbar.showMessage("Ready.")
-    write_log(f"Source: {window.source}\nDestination: {window.destination}")
-    if window.options:
-        write_log(f"Additional options: {", ".join(window.options)}")
+
+        if window.source != "":
+            write_log(f"Source: {window.source}")
+        if window.destination != "":
+            write_log(f"Destination: {window.destination}")
+        if window.options:
+            write_log(f"Additional options: {", ".join(window.options)}")
+
+        window.statusbar.showMessage("Ready.")
+    except Exception as e:
+        write_log(f"Error while initiating application!", e)
 
     # Setting up UI...
     window.show()
