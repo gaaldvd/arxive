@@ -27,7 +27,6 @@ while getopts "ucg" flag; do
 done
 
 # start application
-clear
 if [ -n "$2" ] && [ -n "$3" ]; then
     pipenv run python src/arxive_"$mode".py "$2" "$3"
 elif [ "$1" = "-g" ]; then

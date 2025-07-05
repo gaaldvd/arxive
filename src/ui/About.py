@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'about.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.9.0
+## Created by: Qt User Interface Compiler version 6.9.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -35,19 +35,22 @@ class Ui_Dialog(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.description.sizePolicy().hasHeightForWidth())
         self.description.setSizePolicy(sizePolicy)
-        self.description.setMinimumSize(QSize(200, 0))
-        self.description.setWordWrap(True)
+        self.description.setMinimumSize(QSize(300, 0))
+        self.description.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.description.setWordWrap(False)
         self.description.setOpenExternalLinks(True)
 
         self.verticalLayout.addWidget(self.description, 0, Qt.AlignmentFlag.AlignHCenter|Qt.AlignmentFlag.AlignVCenter)
 
         self.version = QLabel(Dialog)
         self.version.setObjectName(u"version")
+        self.version.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout.addWidget(self.version, 0, Qt.AlignmentFlag.AlignHCenter|Qt.AlignmentFlag.AlignVCenter)
 
         self.link = QLabel(Dialog)
         self.link.setObjectName(u"link")
+        self.link.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.link.setOpenExternalLinks(True)
 
         self.verticalLayout.addWidget(self.link, 0, Qt.AlignmentFlag.AlignHCenter|Qt.AlignmentFlag.AlignVCenter)
