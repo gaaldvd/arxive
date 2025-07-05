@@ -1,17 +1,14 @@
 #!/bin/bash
 
-# Function to display usage
 usage() {
     echo "> Usage: arxive -c|-g|-u [-n] [<source> <destination>]"
     exit 1
 }
 
-# Ensure at least 1 argument is provided
 if [ $# -lt 1 ]; then
     usage
 fi
 
-# Parse arguments
 mode=""
 no_interrupt=false
 source=""
@@ -46,13 +43,11 @@ while [[ $# -gt 0 ]]; do
 
 done
 
-# Validate required arguments
 if [[ -z "$mode" ]]; then
     echo "> Error: Mode (-c, -g, or -u) is required."
     usage
 fi
 
-# Here you can implement the logic for each mode
 case "$mode" in
     -c)
         mode="cli"
@@ -70,7 +65,6 @@ case "$mode" in
         ;;
 esac
 
-# Debug output to confirm the parsed arguments
 echo "> Welcome to arXive!"
 echo "  Mode: $mode"
 echo "  No Interrupt: $no_interrupt"
@@ -81,7 +75,6 @@ if $no_interrupt; then
     echo "  No interrupt option selected."
 fi
 
-# Example of how you might handle the source and destination
 if [[ -n "$source" && -n "$destination" ]]; then
     echo "  Syncing from $source to $destination..."
 else
