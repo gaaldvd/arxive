@@ -4,17 +4,31 @@ import sys
 from os.path import expanduser
 
 from arxive_common import *
+from arxive_gui_dialogs import *
 
-from PySide6.QtWidgets import (QApplication, QMainWindow, QDialog, QWidget,
-                               QFileDialog, QSizePolicy, QListWidgetItem)
-from PySide6.QtCore import Slot, Signal, Qt
+from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QFileDialog,
+                               QSizePolicy, QListWidgetItem)
+from PySide6.QtCore import Slot, Qt
 from PySide6.QtGui import QAction, QIcon, QTextCursor, QColor, QTextCharFormat
 from ui.MainWindow import Ui_MainWindow
-from ui.About import Ui_Dialog as AboutDlg
-from ui.Config import Ui_Dialog as ConfigDlg
 
 
-# Custom class to redirect console output
+def set_folder(parent, folder):
+    folder_path = QFileDialog.getExistingDirectory(
+        parent=parent, caption=f"Select {folder}", dir=expanduser("~"))
+    if folder_path:
+        if folder == "source":
+            parent.sourceEdit.setText(folder_path)
+            if parent.objectName() == "MainWindow":
+                parent.session.source = folder_path
+                parent.session.log(f"{folder.capitalize()}: {folder_path}")
+        else:
+            parent.destEdit.setText(folder_path)
+            if parent.objectName() == "MainWindow":
+                parent.session.destination = folder_path
+                parent.session.log(f"{folder.capitalize()}: {folder_path}")
+
+
 class OutputRedirector:
     def __init__(self, plain_text_edit):
         self.plain_text_edit = plain_text_edit
@@ -59,8 +73,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__()
         self.setupUi(self)
 
+        self.session = None
         self.config = None
-        self.source, self.destination, self.options = None, None, None
         self.listdelButton.setFocus()
 
         # Redirect console output
@@ -77,14 +91,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Set source
         source_action = QAction(QIcon('src/ui/source.svg'), "Add source", self)
         source_action.triggered.connect(
-            lambda: self.set_folder(self, "source", "main"))
+            lambda: set_folder(self, "source"))
         self.toolbar.addAction(source_action)
 
         # Set destination
         destination_action = QAction(
             QIcon('src/ui/destination.svg'), "Add destination", self)
         destination_action.triggered.connect(
-            lambda: self.set_folder(self, "destination", "main"))
+            lambda: set_folder(self, "destination"))
         self.toolbar.addAction(destination_action)
 
         # <--- left side
@@ -125,24 +139,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # ----- TOOLBAR -----
 
-    # @Slot()
-    @staticmethod  # Set source/destination
-    def set_folder(self, folder, sender):
-        folder_path = QFileDialog.getExistingDirectory(
-            parent=self, caption=f"Select {folder}", dir=expanduser("~"))
-        if folder_path:
-            if folder == "source":
-                self.source = folder_path
-                self.sourceEdit.setText(folder_path)
-            else:
-                self.destination = folder_path
-                self.destEdit.setText(folder_path)
-            if sender == "main":
-                write_log(f"{folder.capitalize()}: {folder_path}")
-
     @Slot()
-    def update_action(self):
-        write_log("Updating...")
+    def update_action(self): write_log("Updating...")
 
     @Slot()  # Configuration
     def config_action(self):
@@ -152,27 +150,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @Slot()
     def config_updated(self):
-        self.config = load_config()
+        self.config = Config()
 
-        # Source
-        # self.source = self.config['source']
-        if not path.exists(self.config['source']):
-            write_log(f"Warning! Invalid source: {self.config['source']}")
-        # self.sourceEdit.setText(self.source)
+        # Check source
+        if not path.exists(self.config.source):
+            self.session.log(f"Warning! Invalid source: {self.config.source}")
 
-        # Destination
-        # self.destination = self.config['destination']
-        if not path.exists(self.config['destination']):
-            write_log(f"Warning! Invalid destination: "
-                      f"{self.config['destination']}")
-        # self.destEdit.setText(self.destination)
-
-        write_log(f"Source: {self.source}\nDestination: {self.destination}")
-
-        # Options
-        if self.config['options']:
-            write_log(f"Additional options: "
-                      f"{", ".join(self.config['options'])}")
+        # Check destination
+        if not path.exists(self.config.destination):
+            self.session.log(f"Warning! Invalid destination: "
+                             f"{self.config.destination}")
 
     @Slot()   # About
     def about_action(self):
@@ -194,10 +181,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusbar.showMessage("Listing deletions...")
         self.delList.clear()
         try:
-            deletions = get_deletions(self.source, self.destination)
+            deletions = get_deletions(self.session.source,
+                                      self.session.destination)
             if deletions:
-                write_log(f"{len(deletions)} deletion(s) found, "
-                          f"ready to synchronize.")
+                self.session.log(f"{len(deletions)} deletion(s) found, "
+                                 f"ready to synchronize.")
                 self.delallRadio.setEnabled(True)
                 for file in deletions:
                     item = QListWidgetItem(file)
@@ -206,20 +194,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     item.setCheckState(Qt.CheckState.Unchecked)
                     self.delList.addItem(item)
             else:
-                write_log("No deletions found, ready to synchronize.")
+                self.session.log("No deletions found, ready to synchronize.")
             self.statusbar.showMessage("Ready to synchronize.")
             self.syncButton.setEnabled(True)
         except DirWarning as e:
-            write_log(e)
+            self.session.log(e)
         except Exception as e:
-            write_log("Error while listing deletions.", e)
+            self.session.log("Error while listing deletions.", e)
             self.statusbar.showMessage("Deletions could not be listed.")
 
     @Slot()
     def run_sync(self):
 
         # Delete files/folders
-        entities = [path.join(self.destination,self.delList.item(index).text())
+        entities = [path.join(self.session.destination,
+                              self.delList.item(index).text())
                     for index in range(self.delList.count())
                     if self.delList.item(index).checkState()
                     == Qt.CheckState.Checked]
@@ -228,90 +217,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             try:
                 delete_entity(entity)
                 deleted += 1
-                write_log(f"{entity} deleted.")
+                self.session.log(f"{entity} deleted.")
             except Exception as e:
-                write_log(f"Error while deleting {entity}!", e)
-        write_log(f"{deleted} entities deleted.")
+                self.session.log(f"Error while deleting {entity}!", e)
+        self.session.log(f"{deleted} entities deleted.")
 
         # Synchronize source and destination with rsync
-        write_log(f"Syncing from {self.source} to {self.destination}...")
+        self.session.log(f"Syncing from {self.session.source} "
+                         f"to {self.session.destination}...")
         try:
             self.statusbar.showMessage("Synchronizing...")
-            result = sync(self.source, self.destination, self.config['options'])
+            result = sync(self.session.source, self.session.destination,
+                          self.config.options)
             print(result.stdout)
             print(result.stderr, file=sys.stderr)
             if result.returncode == 0:
-                write_log("Synchronization finished.")
+                self.session.log("Synchronization finished.")
                 self.statusbar.showMessage("Synchronization finished.")
             else:
-                write_log("Error while running rsync!", result.returncode)
+                self.session.log("Error while running rsync!",
+                                 result.returncode)
         except Exception as e:
-            write_log("Error while synchronizing!", e)
+            self.session.log("Error while synchronizing!", e)
         finally:
             self.delList.clear()
             self.delallRadio.setChecked(False)
             self.delallRadio.setEnabled(False)
             self.syncButton.setEnabled(False)
-
-
-class ConfigDialog(ConfigDlg, QDialog):
-    config_updated = Signal(dict)
-    def __init__(self, config, parent=None):
-        super().__init__(parent)
-        self.setupUi(self)
-
-        # Default source/destination
-        self.sourceEdit.setText(config['source'])
-        self.destEdit.setText(config['destination'])
-        self.sourceButton.clicked.connect(
-            lambda: MainWindow.set_folder(self, "source", "config"))
-        self.destButton.clicked.connect(
-            lambda: MainWindow.set_folder(self, "destination", "config"))
-
-        # Additional options
-        if config['options']:
-            self.optionsEdit.setPlainText(", ".join(config['options']))
-
-        self.buttonBox.accepted.connect(lambda: self.save(config))
-
-
-    @Slot()
-    def save(self, config):
-
-        # Default source/destination
-        config['source'] = self.sourceEdit.text()
-        config['destination'] = self.destEdit.text()
-
-        # Additional options
-        config['options'] = list(set(
-            self.optionsEdit.toPlainText().split(", "))) if (
-            self.optionsEdit.toPlainText().strip()) else None
-        if config['options']:
-            if bool(set(config['options'])
-                    & {"-av", "--archive", "-a", "--verbose", "-v"}):
-                write_log("Warning: --archive (-a) and --verbose (-v) "
-                          "are default options (-av)!")
-                config['options'] = [option for option in config['options']
-                                     if option not in ("-av", "--archive", "-a",
-                                                       "--verbose", "-v")]
-        try:
-            save_config(config)
-            write_log("Configurations saved.")
-        except Exception as e:
-            write_log("Error while saving configurations!", e)
-        self.config_updated.emit(config)
-
-
-class AboutDialog(AboutDlg, QDialog):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setupUi(self)
-
-        self.description.setText("arXive: a CLI/GUI frontend for "
-                                 "<a href='https://rsync.samba.org/'>rsync</a>")
-        self.version.setText("v0.0")
-        url = "https://github.com/gaaldvd/arxive?tab=readme-ov-file#arXive"
-        self.link.setText(f"<a href='{url}'>Visit GitHub page</a>")
 
 
 # main function
@@ -323,53 +255,57 @@ def main():
 
     # Create session log
     try:
-        create_session_log()
-        write_log("Session log created.")
+        window.session = Session()
+        window.session.log("Session log created.")
     except Exception as e:
-        write_log(f"Error while creating session log: {e}")
-        window.statusbar.showMessage("Session log could not be created.")
+        print(f"Error while creating session log: {e}")
+        window.session = None
 
     # Load config file
     try:
-        window.config = load_config()
-        write_log("Configurations loaded.")
+        window.config = Config()
+        window.session.log("Configurations loaded.")
     except Exception as e:
-        write_log("Error while loading configurations!", e)
+        window.session.log("Error while loading configurations!", e)
         window.statusbar.showMessage("Configurations could not be loaded.")
 
     # Determine source, destination and options
     try:
-        if len(sys.argv) > 1:
-            window.source, window.destination = sys.argv[1], sys.argv[2]
+        if len(sys.argv[1]) > 0 and len(sys.argv[2]) > 0:
+            window.session.source = sys.argv[1]
+            window.session.destination = sys.argv[2]
         else:
-            window.source = window.config['source']
-            window.destination = window.config['destination']
+            window.session.source = window.config.source
+            window.session.destination = window.config.destination
 
-        if window.source != "":
-            if not path.exists(window.source):
-                write_log(f"Warning! Invalid source: {window.source}")
-                window.source = ""
+        if window.session.source != "":
+            if not path.exists(window.session.source):
+                window.session.log(f"Warning! Invalid source: "
+                                   f"{window.session.source}")
+                window.session.source = ""
             else:
-                window.sourceEdit.setText(window.source)
-        if window.destination != "":
-            if not path.exists(window.destination):
-                write_log(f"Warning! Invalid destination: {window.destination}")
-                window.destination = ""
+                window.sourceEdit.setText(window.session.source)
+        if window.session.destination != "":
+            if not path.exists(window.session.destination):
+                window.session.log(f"Warning! Invalid destination: "
+                                   f"{window.session.destination}")
+                window.session.destination = ""
             else:
-                window.destEdit.setText(window.destination)
+                window.destEdit.setText(window.session.destination)
 
-        window.options = window.config['options']
+        window.session.options = window.config.options
 
-        if window.source != "":
-            write_log(f"Source: {window.source}")
-        if window.destination != "":
-            write_log(f"Destination: {window.destination}")
-        if window.options:
-            write_log(f"Additional options: {", ".join(window.options)}")
+        if window.session.source != "":
+            window.session.log(f"Source: {window.session.source}")
+        if window.session.destination != "":
+            window.session.log(f"Destination: {window.session.destination}")
+        if window.session.options:
+            window.session.log(f"Additional options: "
+                               f"{", ".join(window.session.options)}")
 
         window.statusbar.showMessage("Ready.")
     except Exception as e:
-        write_log(f"Error while initiating application!", e)
+        window.session.log(f"Error while initiating application!", e)
 
     # Setting up UI...
     window.show()

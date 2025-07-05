@@ -46,7 +46,6 @@ class Session:
         self.destination = None
         self.options = None
         self.deletions = None
-        self.deleted, self.errors = 0, 0
 
     def init_log(self):
         with open(self.log_path, 'w', encoding="utf-8") as log:
