@@ -13,20 +13,20 @@ from PySide6.QtGui import QAction, QIcon, QTextCursor, QColor, QTextCharFormat
 from ui.MainWindow import Ui_MainWindow
 
 
-def set_folder(parent, folder):
-    folder_path = QFileDialog.getExistingDirectory(
-        parent=parent, caption=f"Select {folder}", dir=expanduser("~"))
-    if folder_path:
-        if folder == "source":
-            parent.sourceEdit.setText(folder_path)
+def set_dir(parent, directory):
+    dir_path = QFileDialog.getExistingDirectory(
+        parent=parent, caption=f"Select {directory}", dir=expanduser("~"))
+    if dir_path:
+        if parent.objectName() == "MainWindow":
+            parent.syncButton.setEnabled(False)
+        if directory == "source":
+            parent.sourceEdit.setText(dir_path)
             if parent.objectName() == "MainWindow":
-                parent.session.source = folder_path
-                parent.session.log(f"{folder.capitalize()}: {folder_path}")
+                parent.session.log(f"{directory.capitalize()}: {dir_path}")
         else:
-            parent.destEdit.setText(folder_path)
+            parent.destEdit.setText(dir_path)
             if parent.objectName() == "MainWindow":
-                parent.session.destination = folder_path
-                parent.session.log(f"{folder.capitalize()}: {folder_path}")
+                parent.session.log(f"{directory.capitalize()}: {dir_path}")
 
 
 class OutputRedirector:
@@ -77,7 +77,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.config = None
         self.listdelButton.setFocus()
 
-        # Redirect console output
+        # Redirecting console output
         self.output_redirector = OutputRedirector(self.consoleOutput)
         sys.stdout = self.output_redirector
         sys.stderr = self.output_redirector
@@ -91,14 +91,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Set source
         source_action = QAction(QIcon('src/ui/source.svg'), "Add source", self)
         source_action.triggered.connect(
-            lambda: set_folder(self, "source"))
+            lambda: set_dir(self, "source"))
         self.toolbar.addAction(source_action)
 
         # Set destination
         destination_action = QAction(
             QIcon('src/ui/destination.svg'), "Add destination", self)
         destination_action.triggered.connect(
-            lambda: set_folder(self, "destination"))
+            lambda: set_dir(self, "destination"))
         self.toolbar.addAction(destination_action)
 
         # <--- left side
@@ -140,7 +140,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # ----- TOOLBAR -----
 
     @Slot()
-    def update_action(self): write_log("Updating...")
+    def update_action(self): print("Updating...")
 
     @Slot()  # Configuration
     def config_action(self):
@@ -152,11 +152,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def config_updated(self):
         self.config = Config()
 
-        # Check source
+        # Validating source
         if not path.exists(self.config.source):
             self.session.log(f"Warning! Invalid source: {self.config.source}")
 
-        # Check destination
+        # Validating destination
         if not path.exists(self.config.destination):
             self.session.log(f"Warning! Invalid destination: "
                              f"{self.config.destination}")
@@ -178,57 +178,66 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @Slot()
     def list_deletions(self):
-        self.statusbar.showMessage("Listing deletions...")
-        self.delList.clear()
-        try:
-            deletions = get_deletions(self.session.source,
-                                      self.session.destination)
-            if deletions:
-                self.session.log(f"{len(deletions)} deletion(s) found, "
-                                 f"ready to synchronize.")
-                self.delallRadio.setEnabled(True)
-                for file in deletions:
-                    item = QListWidgetItem(file)
-                    item.setFlags(item.flags() |
-                                  Qt.ItemFlag.ItemIsUserCheckable)
-                    item.setCheckState(Qt.CheckState.Unchecked)
-                    self.delList.addItem(item)
-            else:
-                self.session.log("No deletions found, ready to synchronize.")
-            self.statusbar.showMessage("Ready to synchronize.")
-            self.syncButton.setEnabled(True)
-        except DirWarning as e:
-            self.session.log(e)
-        except Exception as e:
-            self.session.log("Error while listing deletions.", e)
-            self.statusbar.showMessage("Deletions could not be listed.")
+        self.session.source = self.sourceEdit.text()
+        self.session.destination = self.destEdit.text()
+        if (path.exists(self.session.source)
+                and path.exists(self.session.destination)
+                and self.session.source != self.session.destination):
+            try:
+                self.statusbar.showMessage("Listing deletions...")
+                deletions = self.session.get_deletions()
+                if deletions:
+                    self.session.log(f"{len(deletions)} deletion(s) found, "
+                                     f"ready to synchronize.")
+                    self.delallRadio.setEnabled(True)
+                    for file in deletions:
+                        item = QListWidgetItem(file)
+                        item.setFlags(item.flags() |
+                                      Qt.ItemFlag.ItemIsUserCheckable)
+                        item.setCheckState(Qt.CheckState.Unchecked)
+                        self.delList.addItem(item)
+                else:
+                    self.session.log("No deletions found, "
+                                     "ready to synchronize.")
+                self.statusbar.showMessage("Ready to synchronize.")
+                self.syncButton.setEnabled(True)
+            except Exception as e:
+                self.session.log("Error while listing deletions!", e)
+                self.statusbar.showMessage("Deletions could not be listed.")
+        else:
+            if not path.exists(self.session.source):
+                self.session.log("Error: Invalid source!")
+            if not path.exists(self.session.destination):
+                self.session.log("Error: Invalid destination!")
+            if self.session.source == self.session.destination:
+                self.session.log("Error: Source and destination "
+                                 "must be different!")
 
     @Slot()
     def run_sync(self):
 
-        # Delete files/folders
+        # Deleting files/directories
         entities = [path.join(self.session.destination,
                               self.delList.item(index).text())
                     for index in range(self.delList.count())
                     if self.delList.item(index).checkState()
                     == Qt.CheckState.Checked]
-        deleted = 0
+        self.session.deleted = 0
         for entity in entities:
             try:
-                delete_entity(entity)
-                deleted += 1
+                self.session.delete_entity(entity)
+                self.session.deleted += 1
                 self.session.log(f"{entity} deleted.")
             except Exception as e:
                 self.session.log(f"Error while deleting {entity}!", e)
-        self.session.log(f"{deleted} entities deleted.")
+        self.session.log(f"{self.session.deleted} entities deleted.")
 
-        # Synchronize source and destination with rsync
+        # Synchronizing source and destination with rsync
         self.session.log(f"Syncing from {self.session.source} "
                          f"to {self.session.destination}...")
         try:
             self.statusbar.showMessage("Synchronizing...")
-            result = sync(self.session.source, self.session.destination,
-                          self.config.options)
+            result = self.session.sync()
             print(result.stdout)
             print(result.stderr, file=sys.stderr)
             if result.returncode == 0:
@@ -253,7 +262,7 @@ def main():
     app = QApplication(sys.argv)
     window = MainWindow()
 
-    # Create session log
+    # Creating session log
     try:
         window.session = Session()
         window.session.log("Session log created.")
@@ -261,7 +270,7 @@ def main():
         print(f"Error while creating session log: {e}")
         window.session = None
 
-    # Load config file
+    # Loading config file
     try:
         window.config = Config()
         window.session.log("Configurations loaded.")
@@ -269,7 +278,7 @@ def main():
         window.session.log("Error while loading configurations!", e)
         window.statusbar.showMessage("Configurations could not be loaded.")
 
-    # Determine source, destination and options
+    # Setting source, destination and options
     try:
         if len(sys.argv[1]) > 0 and len(sys.argv[2]) > 0:
             window.session.source = sys.argv[1]
@@ -278,20 +287,8 @@ def main():
             window.session.source = window.config.source
             window.session.destination = window.config.destination
 
-        if window.session.source != "":
-            if not path.exists(window.session.source):
-                window.session.log(f"Warning! Invalid source: "
-                                   f"{window.session.source}")
-                window.session.source = ""
-            else:
-                window.sourceEdit.setText(window.session.source)
-        if window.session.destination != "":
-            if not path.exists(window.session.destination):
-                window.session.log(f"Warning! Invalid destination: "
-                                   f"{window.session.destination}")
-                window.session.destination = ""
-            else:
-                window.destEdit.setText(window.session.destination)
+        window.sourceEdit.setText(window.session.source)
+        window.destEdit.setText(window.session.destination)
 
         window.session.options = window.config.options
 
