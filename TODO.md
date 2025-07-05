@@ -3,7 +3,7 @@
 ## test issues
 
 - remote isdir() if not mounted up? - rsync exit code 11
-- CLI: 'listing deletions...' msg, no interruption mode
+- CLI: no interruption mode
 - symlink file disappeares after update (???)
 
 ## setup
@@ -16,6 +16,7 @@
 ## CLI
 
 - config editing
+- colored output?
 
 ## GUI
 

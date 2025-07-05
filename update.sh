@@ -1,3 +1,5 @@
+#!/bin/bash
+
 echo "> Checking requirements..."
 echo "> Python version: $(python --version)"
 echo "> PIP version: $(pip --version)"

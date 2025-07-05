@@ -1,37 +1,91 @@
-# validate options
-if [ "$#" -eq 0 ] || [ "$#" -gt 3 ] || [[ "$1" != "-u" && "$1" != "-c" && "$1" != "-g" ]]; then
-    echo "> Usage: arxive [-u] [-c / -g] [<SOURCE>] [<DESTINATION>]"
+#!/bin/bash
+
+# Function to display usage
+usage() {
+    echo "> Usage: arxive -c|-g|-u [-n] [<source> <destination>]"
     exit 1
+}
+
+# Ensure at least 1 argument is provided
+if [ $# -lt 1 ]; then
+    usage
 fi
 
-SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
-cd "$SCRIPT_DIR" || exit
+# Parse arguments
+mode=""
+no_interrupt=false
+source=""
+destination=""
 
-# interpret options
-while getopts "ucg" flag; do
-  case $flag in
-    u)
-      echo "> Updating arXive..."
-      ./update.sh
-      exit 0;;
-    c)
-      mode="cli"
-      break;;
-    g)
-      mode="gui"
-      break;;
-    *)
-      echo "> Usage: arxive [-u] [-c / -g] [<SOURCE>] [<DESTINATION>]"
-      exit 1;;
-  esac
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -c|-g|-u)
+            if [[ -n "$mode" ]]; then
+                echo "> Error: Multiple modes specified."
+                usage
+            fi
+            mode="$1"
+            shift
+            ;;
+        -n)
+            no_interrupt=true
+            shift
+            ;;
+        *)
+            if [[ -z "$source" ]]; then
+                source="$1"
+            elif [[ -z "$destination" ]]; then
+                destination="$1"
+            else
+                echo "> Error: Too many arguments provided."
+                usage
+            fi
+            shift
+            ;;
+    esac
+
 done
 
-# start application
-if [ -n "$2" ] && [ -n "$3" ]; then
-    pipenv run python src/arxive_"$mode".py "$2" "$3"
-elif [ "$1" = "-g" ]; then
-    pipenv run python src/arxive_gui.py
-else
-    echo "> No source/destination specified."
-    echo "> Usage: arxive [-u] [-c / -g] [<SOURCE>] [<DESTINATION>]"
+# Validate required arguments
+if [[ -z "$mode" ]]; then
+    echo "> Error: Mode (-c, -g, or -u) is required."
+    usage
 fi
+
+# Here you can implement the logic for each mode
+case "$mode" in
+    -c)
+        mode="cli"
+        ;;
+    -g)
+        mode="gui"
+        ;;
+    -u)
+        echo "> Updating arXive..."
+        ./update.sh
+        exit 0;;
+    *)
+        echo "> Unexpected mode."
+        usage
+        ;;
+esac
+
+# Debug output to confirm the parsed arguments
+echo "> Welcome to arXive!"
+echo "  Mode: $mode"
+echo "  No Interrupt: $no_interrupt"
+echo "  Source: $source"
+echo "  Destination: $destination"
+
+if $no_interrupt; then
+    echo "  No interrupt option selected."
+fi
+
+# Example of how you might handle the source and destination
+if [[ -n "$source" && -n "$destination" ]]; then
+    echo "  Syncing from $source to $destination..."
+else
+    echo "  Source and destination not specified."
+fi
+
+pipenv run python src/arxive_"$mode".py "$source" "$destination" "$no_interrupt"
