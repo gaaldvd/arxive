@@ -9,6 +9,9 @@ if [ $# -lt 1 ]; then
     usage
 fi
 
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+cd "$SCRIPT_DIR" || exit
+
 mode=""
 no_interrupt=false
 source=""
