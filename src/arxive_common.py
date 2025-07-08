@@ -84,4 +84,5 @@ class Session:
             for option in self.options:
                 cmd.append(option)
         cmd.extend([self.source, self.destination])
-        return run(cmd, text=True, capture_output=True)
+        # return run(cmd, text=True, capture_output=True)
+        return run(cmd, text=True)

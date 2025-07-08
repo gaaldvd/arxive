@@ -30,3 +30,5 @@ test.sh
 nasinfo.md
 src/test_cli.py
 src/test_gui.py
+src/ui/update.ui
+src/ui/Update.py

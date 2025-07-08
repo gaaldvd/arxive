@@ -158,7 +158,57 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.syncButton.setEnabled(False)
 
     @Slot()
-    def update_action(self): print("Updating...")
+    def update_action(self):
+        self.listdelButton.setEnabled(False)
+        self.statusbar.showMessage("Updating...")
+
+        # Updating Git repo
+        self.session.log("Updating Git repository...")
+        try:
+            result = run(["git", "pull"], text=True)
+            # print(result.stdout)
+            # print(result.stderr, file=sys.stderr)
+            if result.returncode == 0:
+                self.session.log("Git repository update done.")
+            else:
+                self.session.log("Warning: something went wrong "
+                                 "while updating Git repository!",
+                                 result.returncode)
+        except Exception as e:
+            self.session.log("Error while updating Git repository!", e)
+
+        # Updating Python env
+        self.session.log("Updating Python environment...")
+        try:
+            result = run(["pipenv", "update"], text=True)
+            # print(result.stdout)
+            # print(result.stderr, file=sys.stderr)
+            if result.returncode == 0:
+                self.session.log("Python environment update done.")
+            else:
+                self.session.log("Warning: something went wrong "
+                                 "while updating Python environment!",
+                                 result.returncode)
+        except Exception as e:
+            self.session.log("Error while updating Python environment!", e)
+
+        # Verifying Python packages
+        self.session.log("Verifying Python packages...")
+        try:
+            result = run(["pipenv", "verify"], text=True)
+            # print(result.stdout)
+            # print(result.stderr, file=sys.stderr)
+            if result.returncode == 0:
+                self.session.log("Python package verification done.")
+            else:
+                self.session.log("Warning: something went wrong "
+                                 "while verifying Python packages!",
+                                 result.returncode)
+        except Exception as e:
+            self.session.log("Error while verifying Python packages!", e)
+
+        self.statusbar.showMessage("Ready.")
+        self.listdelButton.setEnabled(True)
 
     @Slot()  # Configuration
     def config_action(self):
@@ -256,17 +306,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         try:
             self.statusbar.showMessage("Synchronizing...")
             result = self.session.sync()
-            print(result.stdout)
-            print(result.stderr, file=sys.stderr)
+            # print(result.stdout)
+            # print(result.stderr, file=sys.stderr)
             if result.returncode == 0:
-                self.session.log("Synchronization finished.")
-                self.statusbar.showMessage("Synchronization finished.")
+                self.session.log("Synchronization done.")
             else:
-                self.session.log("Error while running rsync!",
+                self.session.log("Warning: something went wrong "
+                                 "while running rsync!",
                                  result.returncode)
         except Exception as e:
             self.session.log("Error while synchronizing!", e)
         finally:
+            self.statusbar.showMessage("Ready.")
             self.delList.clear()
             self.delallRadio.setChecked(False)
             self.delallRadio.setEnabled(False)
