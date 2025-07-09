@@ -169,7 +169,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # print(result.stdout)
             # print(result.stderr, file=sys.stderr)
             if result.returncode == 0:
-                self.session.log("Git repository update done.")
+                self.session.log("Git repository update finished.")
             else:
                 self.session.log("Warning: something went wrong "
                                  "while updating Git repository!",
@@ -184,7 +184,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # print(result.stdout)
             # print(result.stderr, file=sys.stderr)
             if result.returncode == 0:
-                self.session.log("Python environment update done.")
+                self.session.log("Python environment update finished.")
             else:
                 self.session.log("Warning: something went wrong "
                                  "while updating Python environment!",
@@ -199,7 +199,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # print(result.stdout)
             # print(result.stderr, file=sys.stderr)
             if result.returncode == 0:
-                self.session.log("Python package verification done.")
+                self.session.log("Python package verification finished.")
             else:
                 self.session.log("Warning: something went wrong "
                                  "while verifying Python packages!",

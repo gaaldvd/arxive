@@ -10,6 +10,8 @@
 
 ## common
 
+- validate directories before listing deletions
+
 ## CLI
 
 - config editing
