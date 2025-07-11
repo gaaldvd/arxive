@@ -23,6 +23,8 @@ The main feature of the application (besides serving as a frontend) is that it e
 1. Start the application from the terminal with the -u option: `arxive -u`
 2. Follow the prompts to update the environment and/or the repository
 
+There is also an Update button on the GUI toolbar.
+
 ## Errors
 
 Any error can be reported through [e-mail](mailto:gaaldvd[at]proton.me?subject=[GitHub]%20arXive%20error) with the exact error message and/or screenshot. Alternatively, an [issue](https://github.com/gaaldvd/arxive/issues) can be opened.

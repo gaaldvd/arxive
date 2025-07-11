@@ -1,6 +1,7 @@
 # arXive GUI dialogs
 
 from arxive_gui import set_dir
+from arxive_common import validate_options
 
 from PySide6.QtWidgets import QDialog
 from PySide6.QtCore import Signal, Slot
@@ -41,15 +42,9 @@ class ConfigDialog(ConfigDlg, QDialog):
         config.options = list(set(
             self.optionsEdit.toPlainText().split(", "))) if (
             self.optionsEdit.toPlainText().strip()) else None
-        # Validating options
         if config.options:
-            if bool(set(config.options)
-                    & {"-av", "--archive", "-a", "--verbose", "-v"}):
-                print("Warning: --archive (-a) and --verbose (-v) "
-                      "are default options (-av)!")
-                config.options = [option for option in config.options
-                                  if option not in ("-av", "--archive",
-                                                    "-a", "--verbose", "-v")]
+            config.options = validate_options(config.options)
+
         try:
             config.save()
             print("Configurations saved.")

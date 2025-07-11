@@ -32,7 +32,11 @@
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QLineEdit" name="sourceEdit"/>
+        <widget class="QLineEdit" name="sourceEdit">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
        <item row="0" column="2">
         <widget class="QPushButton" name="sourceButton">
@@ -49,7 +53,11 @@
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QLineEdit" name="destEdit"/>
+        <widget class="QLineEdit" name="destEdit">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
        <item row="1" column="2">
         <widget class="QPushButton" name="destButton">

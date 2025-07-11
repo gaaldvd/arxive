@@ -43,13 +43,11 @@ def main():
     else:
         if not path.exists(session.source):
             session.log("Error: Invalid source!")
-            close("Goodbye!")
         if not path.exists(session.destination):
             session.log("Error: Invalid destination!")
-            close("Goodbye!")
         if session.source == session.destination:
             session.log("Error: Source and destination must be different!")
-            close("Goodbye!")
+        close("Goodbye!")
 
     # Listing deletions
     try:

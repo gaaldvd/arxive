@@ -153,8 +153,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.session.log(f"Source: {self.sourceEdit.text()}\n"
                          f"Destination: {self.destEdit.text()}")
         if self.session.options:
+            self.optionsEdit.setText(", ".join(self.session.options))
             self.session.log(f"Additional options: "
                              f"{", ".join(self.session.options)}")
+        else:
+            self.optionsEdit.clear()
         self.syncButton.setEnabled(False)
 
     @Slot()
@@ -300,16 +303,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.session.log(f"Error while deleting {entity}!", e)
         self.session.log(f"{self.session.deleted} entities deleted.")
 
+        # Setting and validating options
+        self.session.options = list(set(
+            self.optionsEdit.text().split(", "))) if (
+            self.optionsEdit.text().strip()) else None
+        self.session.options = validate_options(self.session.options)
+        if self.session.options:
+            self.optionsEdit.setText(", ".join(self.session.options))
+
         # Synchronizing source and destination with rsync
         self.session.log(f"Syncing from {self.session.source} "
-                         f"to {self.session.destination}...")
+                         f"to {self.session.destination}"
+                         f"{" with additional options: " + 
+                            ", ".join(self.session.options) + "..." 
+                         if self.session.options else "..."}")
         try:
             self.statusbar.showMessage("Synchronizing...")
             result = self.session.sync()
             # print(result.stdout)
             # print(result.stderr, file=sys.stderr)
             if result.returncode == 0:
-                self.session.log("Synchronization done.")
+                self.session.log("Synchronization finished.")
             else:
                 self.session.log("Warning: something went wrong "
                                  "while running rsync!",
@@ -366,6 +380,7 @@ def main():
         if window.session.destination != "":
             window.session.log(f"Destination: {window.session.destination}")
         if window.session.options:
+            window.optionsEdit.setText(", ".join(window.session.options))
             window.session.log(f"Additional options: "
                                f"{", ".join(window.session.options)}")
 

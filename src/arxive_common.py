@@ -6,6 +6,17 @@ from os import path, remove, rmdir
 from datetime import datetime
 
 
+def validate_options(options):
+    if options:
+        if bool(set(options) & {"-av", "--archive", "-a", "--verbose", "-v"}):
+            print("Warning: --archive (-a) and --verbose (-v) "
+                  "are default options (-av)!")
+            options = [option for option in options
+                              if option not in ("-av", "--archive",
+                                                "-a", "--verbose", "-v")]
+    return options
+
+
 class Config:
     config_path = path.expanduser('~/.config/arxive')
 

@@ -4,18 +4,15 @@
 
 ## test issues
 
-- remote isdir() if not mounted up? - rsync exit code 11
+- rsync output doesn't fully show up in GUI output (unknown options, errors while moving files, etc.)
 
 ## setup
 
 ## common
 
-- validate directories before listing deletions
-
 ## CLI
 
 - config editing
+- enable (non-default) additional options
 
 ## GUI
-
-- additional options qlineedit (validator function to check this and the editor in the config dialog)

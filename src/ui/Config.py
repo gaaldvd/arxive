@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'config.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.9.0
+## Created by: Qt User Interface Compiler version 6.9.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -38,6 +38,7 @@ class Ui_Dialog(object):
 
         self.sourceEdit = QLineEdit(Dialog)
         self.sourceEdit.setObjectName(u"sourceEdit")
+        self.sourceEdit.setReadOnly(True)
 
         self.gridLayout.addWidget(self.sourceEdit, 0, 1, 1, 1)
 
@@ -53,6 +54,7 @@ class Ui_Dialog(object):
 
         self.destEdit = QLineEdit(Dialog)
         self.destEdit.setObjectName(u"destEdit")
+        self.destEdit.setReadOnly(True)
 
         self.gridLayout.addWidget(self.destEdit, 1, 1, 1, 1)
 
