@@ -20,6 +20,7 @@ docs/*
 docs/source/*
 !docs/source/conf.py
 !docs/source/index.rst
+!docs/source/reference.rst
 
 # Project specific files and directories
 arxive
@@ -30,5 +31,3 @@ test.sh
 nasinfo.md
 src/test_cli.py
 src/test_gui.py
-src/ui/update.ui
-src/ui/Update.py

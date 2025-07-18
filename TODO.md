@@ -16,3 +16,5 @@
 - enable (non-default) additional options
 
 ## GUI
+
+- session log button and viewer
