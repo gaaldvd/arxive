@@ -1,11 +1,47 @@
-# arXive CLI script
+"""
+arXive: A simple CLI/GUI frontend for rsync.
+
+This file contains the code for the CLI mode of arXive.
+
+    Copyright (C) 2024  David Gaal (gaaldavid@tuta.io)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+Check the documentation for details: https://arxive.readthedocs.io
+"""
 
 from sys import argv, exit as close
 from arxive_common import *
 
 
 def main():
-    """Main function."""
+    """arXive CLI script.
+
+    The purpose of the script is to run the arXive application in a command line
+    environment. Details on usage can be found in the
+    `README <https://github.com/gaaldvd/arxive?tab=readme-ov-file#arxive>`_
+    of the repository.
+    `Technical documentation <https://arxive.readthedocs.io/en/latest/reference.html>`_
+    is also available for developers.
+
+    :var Session session: Handles the arXive session.
+    :var Config config: Holds and handles configurations.
+    :var bool no_interrupt: Shows if no-interruption mode is active
+        for the current session.
+    """
+
+    session, config = None, None
 
     # Creating session log
     try:
@@ -13,16 +49,14 @@ def main():
         session.log("Session log created.")
     except Exception as e:
         print(f"Error while creating session log: {e}")
-        session = None
         close("Goodbye!")
 
     # Loading config file
     try:
         config = Config()
         session.log("Configurations loaded.")
-    except Exception as e:
+    except (FileNotFoundError, Exception) as e:
         session.log("Error while loading configurations!", e)
-        config = None
         close("Goodbye!")
 
     no_interrupt = True if argv[3] == "true" else False

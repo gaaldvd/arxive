@@ -1,6 +1,7 @@
 # arXive todo
 
 - documentation
+- specify exceptions
 
 ## test issues
 

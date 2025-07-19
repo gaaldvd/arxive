@@ -23,6 +23,9 @@ from json import load, dump
 from subprocess import run
 from os import path, remove, rmdir
 from datetime import datetime
+from os.path import expanduser
+
+from PySide6.QtWidgets import QFileDialog
 
 
 def validate_options(options):
@@ -42,6 +45,28 @@ def validate_options(options):
                               if option not in ("-av", "--archive",
                                                 "-a", "--verbose", "-v")]
     return options
+
+def set_dir(parent, directory):
+    """Set a directory chosen by the user in a dialog window.
+
+    :param MainWindow or ConfigDialog parent: The window from which
+        the dialog is opened.
+    :param str directory: The type of the directory (source or destination).
+    """
+
+    dir_path = QFileDialog.getExistingDirectory(
+        parent=parent, caption=f"Select {directory}", dir=expanduser("~"))
+    if dir_path:
+        if parent.objectName() == "MainWindow":
+            parent.syncButton.setEnabled(False)
+        if directory == "source":
+            parent.sourceEdit.setText(dir_path)
+            if parent.objectName() == "MainWindow":
+                parent.session.log(f"{directory.capitalize()}: {dir_path}")
+        else:
+            parent.destEdit.setText(dir_path)
+            if parent.objectName() == "MainWindow":
+                parent.session.log(f"{directory.capitalize()}: {dir_path}")
 
 
 class Config:
@@ -80,10 +105,10 @@ class Config:
 
     def __init__(self):
         # TODO specify as self.cfg_file
-        cfg_file = self.load()
-        self.source = cfg_file['source']
-        self.destination = cfg_file['destination']
-        self.options = cfg_file['options']
+        self.cfg_file = self.load()
+        self.source = self.cfg_file['source']
+        self.destination = self.cfg_file['destination']
+        self.options = self.cfg_file['options']
 
     def load(self):
         """Load configurations from `cfg_file`.
@@ -139,7 +164,7 @@ class Session:
             Deletes a file or directory.
 
         sync():
-            Runs rsync to synhcronize the source with the destination.
+            Runs rsync to synchronize the source with the destination.
     """
 
     log_path = (f"{path.dirname(path.dirname(path.abspath(__file__)))}"
@@ -167,7 +192,7 @@ class Session:
         and write them into the session log.
 
         :param str msg: The message to print.
-        :param str msg: Exceptions forwarded with the message.
+        :param Exception or int exception: Exception forwarded with the message.
         """
 
         print(msg)
@@ -177,7 +202,7 @@ class Session:
             log.write(f"{msg}\n")
 
     def get_deletions(self):
-        """List the files and directories that have been deleted from `soure`
+        """List the files and directories that have been deleted from `source`
         but are still present on `destination`.
 
         :return: The list of the paths of deleted entities.
