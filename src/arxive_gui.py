@@ -281,6 +281,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """Open the configuration dialog (toolbar action)."""
 
         dialog = ConfigDialog(self.config)
+        # `ConfigDialog.config_updated` emits the signal when configs are saved
         dialog.config_updated.connect(self.config_updated)
         dialog.exec()
 

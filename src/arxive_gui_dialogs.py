@@ -32,7 +32,23 @@ from ui.About import Ui_Dialog as AboutDlg
 
 
 class ConfigDialog(ConfigDlg, QDialog):
+    """Handles the config dialog of the application.
+
+    Attributes:
+        sourceEdit (QLineEdit): The input field for the source.
+
+        destEdit (QLineEdit): The input field for the destination.
+
+        optionsEdit (QPlainTextEdit): The input field for the additional options.
+
+    Methods:
+        save():
+            Save configurations.
+    """
+
+    # Signal is emitted when saving configs
     config_updated = Signal(dict)
+
     def __init__(self, config, parent=None):
         super().__init__(parent)
         self.setupUi(self)
@@ -54,6 +70,10 @@ class ConfigDialog(ConfigDlg, QDialog):
 
     @Slot()
     def save(self, config):
+        """Update the attributes of `Config` and call `Config.save`.
+
+        :param Config config: Configurations loaded by `Config.load`
+        """
 
         # Default source/destination
         config.source = self.sourceEdit.text()
@@ -69,12 +89,23 @@ class ConfigDialog(ConfigDlg, QDialog):
         try:
             config.save()
             print("Configurations saved.")
+        # TODO Specify exception
         except Exception as e:
             print(f"Error while saving configurations: {e}")
+        # Emit a signal for the slot `MainWindow.config_updated()`
         self.config_updated.emit(config)
 
 
 class AboutDialog(AboutDlg, QDialog):
+    """Handles the about dialog of the application.
+
+    Attributes:
+        description (QLabel): The description of the application.
+
+        version (QLabel): The version of the application.
+
+        link (QLabel): The link to the GitHub page of the repository.
+    """
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
@@ -82,5 +113,5 @@ class AboutDialog(AboutDlg, QDialog):
         self.description.setText("arXive: a CLI/GUI frontend for "
                                  "<a href='https://rsync.samba.org/'>rsync</a>")
         self.version.setText("v0.0")
-        url = "https://github.com/gaaldvd/arxive?tab=readme-ov-file#arXive"
+        url = "https://github.com/gaaldvd/arxive"
         self.link.setText(f"<a href='{url}'>Visit GitHub page</a>")
