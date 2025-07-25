@@ -35,11 +35,11 @@ from ui.MainWindow import Ui_MainWindow
 
 class OutputRedirector:
     """Handles the redirection of the standard output
-        to the `MainWindow.consoleOutput` widget.
+        to the :ref:`MainWindow.consoleOutput <mainwindow-class>` widget.
 
         This class is based on a template and has little to do with
         the application logic. Basically it redirects every `print` command
-        of the `Session.log` method to a `QPlainTextEdit` widget.
+        of the :ref:`Session.log <log>` method to a `QPlainTextEdit` widget.
         It also colorizes the output based on the nature of the message
         (errors, warnings and successful tasks).
     """
@@ -93,10 +93,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     `/ui/MainWindow.py <https://github.com/gaaldvd/arxive/blob/main/src/ui/MainWindow.py>`_
     in the repository.
 
-    Attributes:
-        session (Session): Handles the arXive session.
-
-        config (Config): Holds and handles configurations.
+    :ivar Session session: Handles arXive session.
+    :ivar Config config: Holds configurations.
 
     Toolbar actions:
         defaults_action(): Sets the default source, destination and options.
@@ -121,12 +119,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     """
 
     def __init__(self):
-        """Constructor method.
-
-        :var Session session: Handles the arXive session.
-        :var Config config: Holds and handles configurations.
-        """
-
         super(MainWindow, self).__init__()
         self.setupUi(self)
 
@@ -204,8 +196,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @Slot()
     def defaults_action(self):
-        """Set the default source, destination and options
-        defined in the configuration file (toolbar action).
+        """Set the default source, destination and options stored in
+        :ref:`Config.config_path <config-class>` and
+        :ref:`MainWindow.config <mainwindow-class>` (toolbar action).
         """
 
         self.sourceEdit.setText(self.config.source)
@@ -240,6 +233,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.session.log("Warning: something went wrong "
                                  "while updating Git repository!",
                                  result.returncode)
+        # TODO specify exception
         except Exception as e:
             self.session.log("Error while updating Git repository!", e)
 
@@ -255,6 +249,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.session.log("Warning: something went wrong "
                                  "while updating Python environment!",
                                  result.returncode)
+        # TODO specify exception
         except Exception as e:
             self.session.log("Error while updating Python environment!", e)
 
@@ -270,6 +265,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.session.log("Warning: something went wrong "
                                  "while verifying Python packages!",
                                  result.returncode)
+        # TODO specify exception
         except Exception as e:
             self.session.log("Error while verifying Python packages!", e)
 
@@ -278,7 +274,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @Slot()
     def config_action(self):
-        """Open the configuration dialog (toolbar action)."""
+        """Open the configuration dialog (toolbar action).
+
+        :var ConfigDialog dialog: Configuration dialog
+        """
 
         dialog = ConfigDialog(self.config)
         # `ConfigDialog.config_updated` emits the signal when configs are saved
@@ -287,7 +286,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @Slot()
     def about_action(self):
-        """Open the about window (toolbar action)."""
+        """Open the about dialog (toolbar action).
+
+        :var AboutDialog dialog: About dialog.
+        """
 
         dialog = AboutDialog(self)
         dialog.exec()
@@ -302,7 +304,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @Slot()
     def config_updated(self):
-        """Reload configurations and validate source and destination."""
+        """Reload configurations and validate source and destination.
+        The slot is activated when the
+        :ref:`ConfigDialog.config_updated <configdialog-class>` signal is
+        emitted by the :ref:`ConfigDialog.save <configdialog-save>` method.
+
+        :var Config config: Holds configurations.
+        """
 
         self.config = Config()
 
@@ -317,12 +325,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @Slot()
     def list_deletions(self):
-        """Call `Session.get_deletions` to list
-        the deletions to `MainWindow.consoleOutput`.
+        """Validate source and destination, then call
+        :ref:`Session.get_deletions <get-deletions>` to list
+        the deletions to :ref:`MainWindow.consoleOutput <mainwindow-class>`.
         """
 
         self.session.source = self.sourceEdit.text()
         self.session.destination = self.destEdit.text()
+
         if (path.exists(self.session.source)
                 and path.exists(self.session.destination)
                 and self.session.source != self.session.destination):
@@ -344,6 +354,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                      "ready to synchronize.")
                 self.statusbar.showMessage("Ready to synchronize.")
                 self.syncButton.setEnabled(True)
+            # TODO specify exception
             except Exception as e:
                 self.session.log("Error while listing deletions!", e)
                 self.statusbar.showMessage("Deletions could not be listed.")
@@ -358,7 +369,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @Slot()
     def mark_all(self):
-        """Mark all entities listed by `MainWindow.list_deletions` for deletion.
+        """Mark all entities listed by
+        :ref:`MainWindow.list_deletions <list-deletions-action>` for deletion.
         """
 
         for index in range(self.delList.count()):
@@ -366,8 +378,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @Slot()
     def run_sync(self):
-        """Call `Session.sync` to synchronize `Session.source`
-        with `Session.destination`.
+        """Call :ref:`Session.sync <sync>` to synchronize
+        :ref:`Session.source <session-class>` with
+        :ref:`Session.destination <session-class>`.
+
+        :var list entities: Files and directories marked for deletion.
+        :var subprocess.CompletedProcess result: The result object
+            of the `subprocess.run` method.
         """
 
         # Deleting files/directories
@@ -382,6 +399,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.session.delete_entity(entity)
                 self.session.deleted += 1
                 self.session.log(f"{entity} deleted.")
+            # TODO specify exception
             except Exception as e:
                 self.session.log(f"Error while deleting {entity}!", e)
         self.session.log(f"{self.session.deleted} entities deleted.")
@@ -411,6 +429,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.session.log("Warning: something went wrong "
                                  "while running rsync!",
                                  result.returncode)
+        # TODO specify exception
         except Exception as e:
             self.session.log("Error while synchronizing!", e)
         finally:

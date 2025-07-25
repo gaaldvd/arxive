@@ -1,6 +1,8 @@
 """
 arXive: A simple CLI/GUI frontend for rsync.
 
+This file contains the code for the shared functions and classes of arXive.
+
     Copyright (C) 2024  David Gaal (gaaldavid@tuta.io)
 
     This program is free software: you can redistribute it and/or modify
@@ -31,9 +33,11 @@ from PySide6.QtWidgets import QFileDialog
 def validate_options(options):
     """Check if -a or -v (which are default) is set as additional options.
 
-    :param list options: The list which contains the additional rsync options.
+    :param list options: Additional rsync options (usually from
+        :ref:`Session.options <session-class>` or
+        :ref:`Config.options <config-class>`).
 
-    :return: The validated list of rsync options.
+    :return: Validated list of rsync options.
     :rtype: list
     """
 
@@ -72,7 +76,8 @@ def set_dir(parent, directory):
 class Config:
     """Handles the configurations set by the user.
 
-    The configuration file (JSON) and the dictionary has the following format:
+    The configuration file (`config_path`) and the dictionary (`config_data`)
+    has the following format:
 
     .. code-block:: json
 
@@ -82,41 +87,35 @@ class Config:
             "options": ["--progress", "-l"]
         }
 
-    Attributes:
-        config_path (str): The path to the JSON file containing configurations.
-
-        cfg_file (dict): Deserialized data from the `config_path`.
-
-        source (str): The source directory.
-
-        destination (str): The destination directory.
-
-        options (list): Additional options passed to the rsync command.
+    :ivar str config_path: The path to the JSON file with the configurations.
+    :ivar dict config_data: Deserialized data from the `config_path` file.
+    :ivar str source: The source directory.
+    :ivar str destination: The destination directory.
+    :ivar list options: Additional options passed to the rsync command.
 
     Methods:
         load():
             Loads configurations.
 
         save():
-            Saves configurations set by the user.
+            Saves configurations.
     """
 
     config_path = path.expanduser('~/.config/arxive')
 
     def __init__(self):
-        # TODO specify as self.cfg_file
-        self.cfg_file = self.load()
-        self.source = self.cfg_file['source']
-        self.destination = self.cfg_file['destination']
-        self.options = self.cfg_file['options']
+        self.config_data = self.load()
+        self.source = self.config_data['source']
+        self.destination = self.config_data['destination']
+        self.options = self.config_data['options']
 
     def load(self):
-        """Load configurations from `cfg_file`.
+        """Load configurations from `config_path`.
 
-        :return: The dictionary with the loaded configurations.
+        :return: Deserialized configurations data.
         :rtype: dict
 
-        :raises FileNotFoundError: If `cfg_file` cannot be found.
+        :raises FileNotFoundError: If `config_path` cannot be found.
         """
 
         if path.exists(self.config_path):
@@ -127,7 +126,7 @@ class Config:
                                     "~/.config/arxive.")
 
     def save(self):
-        """Save configurations to the arXive config (JSON) file."""
+        """Save configurations to `config_path`."""
         with open(self.config_path, 'w', encoding="utf-8") as file:
             config = {"source": self.source, "destination": self.destination,
                       "options": self.options}
@@ -135,20 +134,13 @@ class Config:
 
 
 class Session:
-    """Handles the arXive session.
+    """Handles an arXive session.
 
-    Attributes:
-        log_path (str): The path to the session log (arXive installation folder).
-
-        source (str): The source directory.
-
-        destination (str): The destination directory.
-
-        options (list): Additional options passed to the rsync command.
-
-        deletions (list): The list of deletions.
-
-        deleted (int): The number of deleted entities.
+    :ivar str log_path: The path to the session log (arXive installation folder).
+    :ivar str source: The source directory.
+    :ivar str destination: The destination directory.
+    :ivar list options: Additional options passed to the rsync command.
+    :ivar list deletions: The list of files/directories deleted from `source`.
 
     Methods:
         init_log():
@@ -192,7 +184,8 @@ class Session:
         and write them into the session log.
 
         :param str msg: The message to print.
-        :param Exception or int exception: Exception forwarded with the message.
+        :param Exception or int exception: Exception or result
+            forwarded with the message.
         """
 
         print(msg)
@@ -205,7 +198,7 @@ class Session:
         """List the files and directories that have been deleted from `source`
         but are still present on `destination`.
 
-        :return: The list of the paths of deleted entities.
+        :return: The paths of deleted entities.
         :rtype: list
         """
 
@@ -221,12 +214,11 @@ class Session:
         return deletions
 
     def delete_entity(self, entity_path):
-        """Delete entities in the `Session.deletions` list
-        returned by `Session.get_deletions`.
+        """Delete entities in the `deletions` list returned by `get_deletions`.
 
-        :param str entity_path: The full path to the entity to be deleted.
+        :param str entity_path: The full path of the entity.
 
-        :raises FileNotFoundError: If the entity to be deleted cannot be found.
+        :raises FileNotFoundError: If `entity_path` cannot be found.
         """
         if path.isfile(entity_path):
             remove(entity_path)
@@ -239,9 +231,9 @@ class Session:
             raise Exception(f"Error: {entity_path} could not be deleted.")
 
     def sync(self):
-        """Run rsync to synchronize `Session.source` with `Session.destination`.
+        """Run rsync to synchronize `source` with `destination`.
 
-        :return: The result of the `subprocess.run` method.
+        :return: The result object of the `subprocess.run` method.
         :rtype: subprocess.CompletedProcess
         """
         cmd = ["rsync", "-av"]

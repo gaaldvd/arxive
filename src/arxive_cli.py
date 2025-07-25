@@ -39,6 +39,8 @@ def main():
     :var Config config: Holds and handles configurations.
     :var bool no_interrupt: Shows if no-interruption mode is active
         for the current session.
+    :var subprocess.CompletedProcess result: The result object
+        of the `subprocess.run` method.
     """
 
     session, config = None, None
