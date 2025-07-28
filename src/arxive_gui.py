@@ -3,7 +3,9 @@ arXive: A simple CLI/GUI frontend for rsync.
 
 This file contains the code for the GUI mode of arXive.
 
-    Copyright (C) 2024  David Gaal (gaaldavid@tuta.io)
+Check the documentation for details: https://arxive.readthedocs.io
+
+    Copyright (C) 2025 David Gaal (gaaldvd@proton.me)
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,8 +19,6 @@ This file contains the code for the GUI mode of arXive.
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-Check the documentation for details: https://arxive.readthedocs.io
 """
 
 import sys
@@ -35,13 +35,13 @@ from ui.MainWindow import Ui_MainWindow
 
 class OutputRedirector:
     """Handles the redirection of the standard output
-        to the :ref:`MainWindow.consoleOutput <mainwindow-class>` widget.
+    to the :ref:`MainWindow.consoleOutput <mainwindow-class>` widget.
 
-        This class is based on a template and has little to do with
-        the application logic. Basically it redirects every `print` command
-        of the :ref:`Session.log <log>` method to a `QPlainTextEdit` widget.
-        It also colorizes the output based on the nature of the message
-        (errors, warnings and successful tasks).
+    This class is based on a template and has little to do with
+    the application logic. Basically it redirects every `print` command
+    of the :ref:`Session.log <log>` method to a `QPlainTextEdit` widget.
+    It also colorizes the output based on the nature of the message
+    (errors, warnings and successful tasks).
     """
 
     def __init__(self, plain_text_edit):
@@ -233,8 +233,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.session.log("Warning: something went wrong "
                                  "while updating Git repository!",
                                  result.returncode)
-        # TODO specify exception
-        except Exception as e:
+        except (FileNotFoundError, PermissionError, OSError) as e:
             self.session.log("Error while updating Git repository!", e)
 
         # Updating Python env
@@ -249,8 +248,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.session.log("Warning: something went wrong "
                                  "while updating Python environment!",
                                  result.returncode)
-        # TODO specify exception
-        except Exception as e:
+        except (FileNotFoundError, PermissionError, OSError) as e:
             self.session.log("Error while updating Python environment!", e)
 
         # Verifying Python packages
@@ -265,8 +263,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.session.log("Warning: something went wrong "
                                  "while verifying Python packages!",
                                  result.returncode)
-        # TODO specify exception
-        except Exception as e:
+        except (FileNotFoundError, PermissionError, OSError) as e:
             self.session.log("Error while verifying Python packages!", e)
 
         self.statusbar.showMessage("Ready.")
@@ -330,34 +327,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         the deletions to :ref:`MainWindow.consoleOutput <mainwindow-class>`.
         """
 
+        # Setting source and destination from the input boxes
         self.session.source = self.sourceEdit.text()
         self.session.destination = self.destEdit.text()
 
+        # Validating source and destination
         if (path.exists(self.session.source)
                 and path.exists(self.session.destination)
                 and self.session.source != self.session.destination):
-            try:
-                self.statusbar.showMessage("Listing deletions...")
-                deletions = self.session.get_deletions()
-                if deletions:
-                    self.session.log(f"{len(deletions)} deletion(s) found, "
-                                     f"ready to synchronize.")
-                    self.delallRadio.setEnabled(True)
-                    for file in deletions:
-                        item = QListWidgetItem(file)
-                        item.setFlags(item.flags() |
-                                      Qt.ItemFlag.ItemIsUserCheckable)
-                        item.setCheckState(Qt.CheckState.Unchecked)
-                        self.delList.addItem(item)
-                else:
-                    self.session.log("No deletions found, "
-                                     "ready to synchronize.")
-                self.statusbar.showMessage("Ready to synchronize.")
-                self.syncButton.setEnabled(True)
-            # TODO specify exception
-            except Exception as e:
-                self.session.log("Error while listing deletions!", e)
-                self.statusbar.showMessage("Deletions could not be listed.")
+
+            # Getting deletions from the source
+            self.statusbar.showMessage("Listing deletions...")
+            deletions = self.session.get_deletions()
+            if deletions:
+                self.session.log(f"{len(deletions)} deletion(s) found, "
+                                    f"ready to synchronize.")
+                self.delallRadio.setEnabled(True)
+                for file in deletions:
+                    item = QListWidgetItem(file)
+                    item.setFlags(item.flags() |
+                                    Qt.ItemFlag.ItemIsUserCheckable)
+                    item.setCheckState(Qt.CheckState.Unchecked)
+                    self.delList.addItem(item)
+            else:
+                self.session.log("No deletions found, "
+                                    "ready to synchronize.")
+            self.statusbar.showMessage("Ready to synchronize.")
+            self.syncButton.setEnabled(True)
         else:
             if not path.exists(self.session.source):
                 self.session.log("Error: Invalid source!")
@@ -387,20 +383,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             of the `subprocess.run` method.
         """
 
-        # Deleting files/directories
+        # Concatenating source/destination with entity path for deletions
         entities = [path.join(self.session.destination,
                               self.delList.item(index).text())
                     for index in range(self.delList.count())
                     if self.delList.item(index).checkState()
                     == Qt.CheckState.Checked]
+
+        # Deleting files/directories
         self.session.deleted = 0
         for entity in entities:
             try:
                 self.session.delete_entity(entity)
                 self.session.deleted += 1
                 self.session.log(f"{entity} deleted.")
-            # TODO specify exception
-            except Exception as e:
+            except FileNotFoundError as e:
                 self.session.log(f"Error while deleting {entity}!", e)
         self.session.log(f"{self.session.deleted} entities deleted.")
 
@@ -418,26 +415,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                          f"{" with additional options: " +
                             ", ".join(self.session.options) + "..."
                          if self.session.options else "..."}")
-        try:
-            self.statusbar.showMessage("Synchronizing...")
-            result = self.session.sync()
-            # print(result.stdout)
-            # print(result.stderr, file=sys.stderr)
-            if result.returncode == 0:
-                self.session.log("Synchronization finished.")
-            else:
-                self.session.log("Warning: something went wrong "
-                                 "while running rsync!",
-                                 result.returncode)
-        # TODO specify exception
-        except Exception as e:
-            self.session.log("Error while synchronizing!", e)
-        finally:
-            self.statusbar.showMessage("Ready.")
-            self.delList.clear()
-            self.delallRadio.setChecked(False)
-            self.delallRadio.setEnabled(False)
-            self.syncButton.setEnabled(False)
+        self.statusbar.showMessage("Synchronizing...")
+        result = self.session.sync()
+        # print(result.stdout)
+        # print(result.stderr, file=sys.stderr)
+        if result.returncode == 0:
+            self.session.log("Synchronization finished.")
+        else:
+            self.session.log("Warning: something went wrong "
+                                "while running rsync!",
+                                result.returncode)
+
+        self.statusbar.showMessage("Ready.")
+        self.delList.clear()
+        self.delallRadio.setChecked(False)
+        self.delallRadio.setEnabled(False)
+        self.syncButton.setEnabled(False)
 
 
 # main function
@@ -462,7 +455,7 @@ def main():
     try:
         window.session = Session()
         window.session.log("Session log created.")
-    except Exception as e:
+    except (FileNotFoundError, PermissionError, OSError) as e:
         print(f"Error while creating session log: {e}")
         window.session = None
 
@@ -470,41 +463,35 @@ def main():
     try:
         window.config = Config()
         window.session.log("Configurations loaded.")
-    except FileNotFoundError as e:
-        window.session.log(f"Warning: {e}")
-        window.statusbar.showMessage("Configurations could not be loaded.")
-    except Exception as e:
+    except (FileNotFoundError, PermissionError, OSError) as e:
         window.session.log("Error while loading configurations!", e)
         window.statusbar.showMessage("Configurations could not be loaded.")
 
     # Setting source, destination and options
-    try:
-        if len(sys.argv[1]) > 0 and len(sys.argv[2]) > 0:
-            window.session.source = sys.argv[1]
-            window.session.destination = sys.argv[2]
-        else:
-            window.session.source = window.config.source
-            window.session.destination = window.config.destination
+    if len(sys.argv[1]) > 0 and len(sys.argv[2]) > 0:
+        window.session.source = sys.argv[1]
+        window.session.destination = sys.argv[2]
+    else:
+        window.session.source = window.config.source
+        window.session.destination = window.config.destination
 
-        window.sourceEdit.setText(window.session.source)
-        window.destEdit.setText(window.session.destination)
+    window.sourceEdit.setText(window.session.source)
+    window.destEdit.setText(window.session.destination)
 
-        window.session.options = window.config.options
+    window.session.options = window.config.options
 
-        if window.session.source != "":
-            window.session.log(f"Source: {window.session.source}")
-        if window.session.destination != "":
-            window.session.log(f"Destination: {window.session.destination}")
-        if window.session.options:
-            window.optionsEdit.setText(", ".join(window.session.options))
-            window.session.log(f"Additional options: "
-                               f"{", ".join(window.session.options)}")
+    if window.session.source != "":
+        window.session.log(f"Source: {window.session.source}")
+    if window.session.destination != "":
+        window.session.log(f"Destination: {window.session.destination}")
+    if window.session.options:
+        window.optionsEdit.setText(", ".join(window.session.options))
+        window.session.log(f"Additional options: "
+                            f"{", ".join(window.session.options)}")
 
-        window.statusbar.showMessage("Ready.")
-    except Exception as e:
-        window.session.log(f"Error while initiating application!", e)
+    window.statusbar.showMessage("Ready.")
 
-    # Setting up UI...
+    # Starting UI
     window.show()
     app.exec()
 

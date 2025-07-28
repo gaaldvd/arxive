@@ -3,7 +3,9 @@ arXive: A simple CLI/GUI frontend for rsync.
 
 This file contains the code for the shared functions and classes of arXive.
 
-    Copyright (C) 2024  David Gaal (gaaldavid@tuta.io)
+Check the documentation for details: https://arxive.readthedocs.io
+
+    Copyright (C) 2025 David Gaal (gaaldvd@proton.me)
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,8 +19,6 @@ This file contains the code for the shared functions and classes of arXive.
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-Check the documentation for details: https://arxive.readthedocs.io
 """
 
 from json import load, dump
@@ -58,8 +58,12 @@ def set_dir(parent, directory):
     :param str directory: The type of the directory (source or destination).
     """
 
+    # Opening a dialog for choosing the directory
     dir_path = QFileDialog.getExistingDirectory(
         parent=parent, caption=f"Select {directory}", dir=expanduser("~"))
+
+    # If the parent is the main window the 'Run sync' button is disabled and the
+    # directories get validated when the 'List deletions' button is pressed
     if dir_path:
         if parent.objectName() == "MainWindow":
             parent.syncButton.setEnabled(False)
@@ -101,6 +105,7 @@ class Config:
             Saves configurations.
     """
 
+    # Default config directory on most Linux distributions
     config_path = path.expanduser('~/.config/arxive')
 
     def __init__(self):
@@ -118,8 +123,11 @@ class Config:
         :raises FileNotFoundError: If `config_path` cannot be found.
         """
 
+        # Validating the config file which is created when the app is installed
         if path.exists(self.config_path):
             with open(self.config_path, 'r', encoding="utf-8") as file:
+
+                # Returning deserialized JSON data
                 return load(file)
         else:
             raise FileNotFoundError("Configuration file cannot be found at "
@@ -127,16 +135,22 @@ class Config:
 
     def save(self):
         """Save configurations to `config_path`."""
+
+        # There is no need to validate the path since `load` is called
+        # when the app is initialized and it would raise an exception
+        # if the file was missing
         with open(self.config_path, 'w', encoding="utf-8") as file:
             config = {"source": self.source, "destination": self.destination,
                       "options": self.options}
+
+            # Serializing dictionary to JSON data
             dump(config, file)
 
 
 class Session:
     """Handles an arXive session.
 
-    :ivar str log_path: The path to the session log (arXive installation folder).
+    :ivar str log_path: The path to the session log.
     :ivar str source: The source directory.
     :ivar str destination: The destination directory.
     :ivar list options: Additional options passed to the rsync command.
@@ -159,6 +173,7 @@ class Session:
             Runs rsync to synchronize the source with the destination.
     """
 
+    # arXive installation folder
     log_path = (f"{path.dirname(path.dirname(path.abspath(__file__)))}"
                 f"/session.log")
 
@@ -184,11 +199,14 @@ class Session:
         and write them into the session log.
 
         :param str msg: The message to print.
-        :param Exception or int exception: Exception or result
-            forwarded with the message.
+        :param Exception or int exception: Exception or `subprocess.run` result
+            code forwarded with the message.
         """
 
         print(msg)
+
+        # If there is an `exception` it gets attached to the message
+        # and written into the session log
         if exception:
             msg = f"{msg} - {exception}"
         with open(self.log_path, 'a', encoding="utf-8") as log:
@@ -202,24 +220,31 @@ class Session:
         :rtype: list
         """
 
+        # Doing a dry-run of `rsync --delete` and catching the output
         cmd = ["rsync", "-av", "--delete", "--dry-run",
                self.source, self.destination]
         deletions = []
-        # TODO subprocess.run used without explicitly defining the value for 'check'
-        result = run(cmd, capture_output=True, text=True)
+        result = run(cmd, capture_output=True, text=True, check=False)
+
+        # Extracting the list of deletions from the output
         for line in result.stdout.splitlines():
             if line.startswith("deleting "):
                 filepath = line[len("deleting "):].strip()
                 deletions.append(filepath)
+
+        # Returning the list of extracted paths
         return deletions
 
     def delete_entity(self, entity_path):
-        """Delete entities in the `deletions` list returned by `get_deletions`.
+        """Delete an file or directory from the `deletions` list
+        returned by `get_deletions`.
 
         :param str entity_path: The full path of the entity.
 
         :raises FileNotFoundError: If `entity_path` cannot be found.
         """
+
+        # Checking whether the entity is a file or a directory and deleting it
         if path.isfile(entity_path):
             remove(entity_path)
             self.deleted += 1
@@ -227,8 +252,8 @@ class Session:
             rmdir(entity_path)
             self.deleted += 1
         else:
-            # TODO specify FileNotFoundError exception
-            raise Exception(f"Error: {entity_path} could not be deleted.")
+            raise FileNotFoundError(f"Error: {entity_path}"
+                                    f" could not be deleted.")
 
     def sync(self):
         """Run rsync to synchronize `source` with `destination`.
@@ -236,11 +261,16 @@ class Session:
         :return: The result object of the `subprocess.run` method.
         :rtype: subprocess.CompletedProcess
         """
+
         cmd = ["rsync", "-av"]
+
+        # Attaching additional options if there are any
         if self.options:
             for option in self.options:
                 cmd.append(option)
+
+        # Attaching source and destination
         cmd.extend([self.source, self.destination])
-        # return run(cmd, text=True, capture_output=True)
-        # TODO subprocess.run used without explicitly defining the value for 'check'
-        return run(cmd, text=True)
+
+        # Running rsync and returning the result object
+        return run(cmd, text=True, check=False)

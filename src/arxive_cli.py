@@ -3,7 +3,9 @@ arXive: A simple CLI/GUI frontend for rsync.
 
 This file contains the code for the CLI mode of arXive.
 
-    Copyright (C) 2024  David Gaal (gaaldavid@tuta.io)
+Check the documentation for details: https://arxive.readthedocs.io
+
+    Copyright (C) 2025 David Gaal (gaaldvd@proton.me)
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,8 +19,6 @@ This file contains the code for the CLI mode of arXive.
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-Check the documentation for details: https://arxive.readthedocs.io
 """
 
 from sys import argv, exit as close
@@ -49,7 +49,8 @@ def main():
     try:
         session = Session()
         session.log("Session log created.")
-    except Exception as e:
+    # TODO Specify exception
+    except (FileNotFoundError, PermissionError, OSError) as e:
         print(f"Error while creating session log: {e}")
         close("Goodbye!")
 
@@ -57,14 +58,14 @@ def main():
     try:
         config = Config()
         session.log("Configurations loaded.")
-    except (FileNotFoundError, Exception) as e:
+    except (FileNotFoundError, PermissionError, OSError) as e:
         session.log("Error while loading configurations!", e)
         close("Goodbye!")
 
+    # Checking if no-interruption mode is enabled
     no_interrupt = True if argv[3] == "true" else False
-
     if no_interrupt:
-        session.log("No interruption mode is ACTIVE!")
+        session.log("No-interruption mode is ACTIVE!")
 
     # Setting and validating source and destination
     session.source, session.destination = argv[1], argv[2]
@@ -72,6 +73,7 @@ def main():
         session.log("Error: Source and destination must be provided!")
         close("Goodbye!")
 
+    # Validating source and destination
     if (path.exists(session.source) and path.exists(session.destination)
             and session.source != session.destination):
         session.log(f"Source: {session.source}\n"
@@ -86,13 +88,8 @@ def main():
         close("Goodbye!")
 
     # Listing deletions
-    try:
-        session.log("Listing deletions...")
-        session.deletions = session.get_deletions()
-    except Exception as e:
-        session.deletions = None
-        session.log("Error while listing deletions!", e)
-        close("Goodbye!")
+    session.log("Listing deletions...")
+    session.deletions = session.get_deletions()
 
     # Prompting the user for deletions and deleting files/directories
     session.log(f"\n{len(session.deletions)} deletion(s) found.\n")
@@ -113,7 +110,7 @@ def main():
                     session.delete_entity(entity)
                     session.deleted += 1
                     session.log(f"{entity} deleted.")
-                except Exception as e:
+                except FileNotFoundError as e:
                     session.log(f"Error while deleting {entity}!", e)
             session.log(f"{session.deleted} entities deleted.")
         elif del_choice == "n":
@@ -131,7 +128,7 @@ def main():
                     session.delete_entity(entity)
                     session.deleted += 1
                     session.log(f"{entity} deleted.")
-                except Exception as e:
+                except FileNotFoundError as e:
                     session.log(f"Error while deleting {entity}!", e)
             session.log(f"{session.deleted} entities deleted.")
 
@@ -147,15 +144,12 @@ def main():
     else:
         session.log(f"Syncing from {session.source} "
                     f"to {session.destination}...")
-        try:
-            result = session.sync()
-            if result.returncode == 0:
-                session.log("\nSynchronization finished. Goodbye!")
-            else:
-                session.log("Error while running rsync!",
-                            result.returncode)
-        except Exception as e:
-            session.log("Error while synchronizing!", e)
+        result = session.sync()
+        if result.returncode == 0:
+            session.log("\nSynchronization finished. Goodbye!")
+        else:
+            session.log("Error while running rsync!",
+                        result.returncode)
 
 
 if __name__ == '__main__':

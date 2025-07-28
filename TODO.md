@@ -1,8 +1,7 @@
 # arXive todo
 
 - documentation
-  - specify exceptions
-  - document raised exceptions
+- handle rsync exceptions/return codes, update exceptions
 
 ## test issues
 
