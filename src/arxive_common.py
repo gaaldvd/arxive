@@ -22,7 +22,7 @@ Check the documentation for details: https://arxive.readthedocs.io
 """
 
 from json import load, dump
-from subprocess import run
+from subprocess import run, CalledProcessError
 from os import path, remove, rmdir
 from datetime import datetime
 from os.path import expanduser
@@ -137,7 +137,7 @@ class Config:
         """Save configurations to `config_path`."""
 
         # There is no need to validate the path since `load` is called
-        # when the app is initialized and it would raise an exception
+        # when the app is initialized, and it would raise an exception
         # if the file was missing
         with open(self.config_path, 'w', encoding="utf-8") as file:
             config = {"source": self.source, "destination": self.destination,
@@ -224,7 +224,10 @@ class Session:
         cmd = ["rsync", "-av", "--delete", "--dry-run",
                self.source, self.destination]
         deletions = []
-        result = run(cmd, capture_output=True, text=True, check=False)
+        try:
+            result = run(cmd, capture_output=True, text=True, check=True)
+        except CalledProcessError as e:
+            return e
 
         # Extracting the list of deletions from the output
         for line in result.stdout.splitlines():
@@ -273,4 +276,4 @@ class Session:
         cmd.extend([self.source, self.destination])
 
         # Running rsync and returning the result object
-        return run(cmd, text=True, check=False)
+        return run(cmd, text=True, check=True)

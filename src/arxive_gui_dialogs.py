@@ -32,7 +32,7 @@ from ui.About import Ui_Dialog as AboutDlg
 
 
 class ConfigDialog(ConfigDlg, QDialog):
-    """Handles the config dialog of the application.
+    """Handles the Configurations dialog of the application.
 
     The class inherits from `Pyside6.QtWidgets.QDialog`
     and `src.ui.Config.Ui_Dialog`.
@@ -103,7 +103,7 @@ class ConfigDialog(ConfigDlg, QDialog):
 
 
 class AboutDialog(AboutDlg, QDialog):
-    """Handles the about dialog of the application.
+    """Handles the About dialog of the application.
 
     The class inherits from `Pyside6.QtWidgets.QDialog`
     and `src.ui.About.Ui_Dialog`.
@@ -126,4 +126,4 @@ class AboutDialog(AboutDlg, QDialog):
         self.description.setText("arXive: a CLI/GUI frontend for "
                                  "<a href='https://rsync.samba.org/'>rsync</a>")
         self.version.setText("v0.0")
-        self.link.setText(f"<a href='{url}'>Visit GitHub page</a>")
+        self.link.setText(f"<a href='{self.url}'>Visit GitHub page</a>")

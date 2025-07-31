@@ -87,9 +87,12 @@ def main():
             session.log("Error: Source and destination must be different!")
         close("Goodbye!")
 
-    # Listing deletions
+    # Getting list of deletions from the source
     session.log("Listing deletions...")
     session.deletions = session.get_deletions()
+    if isinstance(session.deletions, CalledProcessError):
+        e, c = session.deletions.stderr, session.deletions.returncode
+        session.log(f"Error while listing deletions ({c})!", e)
 
     # Prompting the user for deletions and deleting files/directories
     session.log(f"\n{len(session.deletions)} deletion(s) found.\n")
@@ -110,7 +113,7 @@ def main():
                     session.delete_entity(entity)
                     session.deleted += 1
                     session.log(f"{entity} deleted.")
-                except FileNotFoundError as e:
+                except (FileNotFoundError, PermissionError, OSError) as e:
                     session.log(f"Error while deleting {entity}!", e)
             session.log(f"{session.deleted} entities deleted.")
         elif del_choice == "n":
@@ -128,7 +131,7 @@ def main():
                     session.delete_entity(entity)
                     session.deleted += 1
                     session.log(f"{entity} deleted.")
-                except FileNotFoundError as e:
+                except (FileNotFoundError, PermissionError, OSError) as e:
                     session.log(f"Error while deleting {entity}!", e)
             session.log(f"{session.deleted} entities deleted.")
 
@@ -148,8 +151,8 @@ def main():
         if result.returncode == 0:
             session.log("\nSynchronization finished. Goodbye!")
         else:
-            session.log("Error while running rsync!",
-                        result.returncode)
+            session.log("Warning: something went wrong "
+                             "while running rsync!", result.returncode)
 
 
 if __name__ == '__main__':

@@ -225,8 +225,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.session.log("Updating Git repository...")
         try:
             result = run(["git", "pull"], text=True)
-            # print(result.stdout)
-            # print(result.stderr, file=sys.stderr)
             if result.returncode == 0:
                 self.session.log("Git repository update finished.")
             else:
@@ -240,8 +238,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.session.log("Updating Python environment...")
         try:
             result = run(["pipenv", "update"], text=True)
-            # print(result.stdout)
-            # print(result.stderr, file=sys.stderr)
             if result.returncode == 0:
                 self.session.log("Python environment update finished.")
             else:
@@ -255,8 +251,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.session.log("Verifying Python packages...")
         try:
             result = run(["pipenv", "verify"], text=True)
-            # print(result.stdout)
-            # print(result.stderr, file=sys.stderr)
             if result.returncode == 0:
                 self.session.log("Python package verification finished.")
             else:
@@ -271,7 +265,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @Slot()
     def config_action(self):
-        """Open the configuration dialog (toolbar action).
+        """Open the 'Configuration' dialog (toolbar action).
 
         :var ConfigDialog dialog: Configuration dialog
         """
@@ -283,7 +277,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @Slot()
     def about_action(self):
-        """Open the about dialog (toolbar action).
+        """Open the 'About' dialog (toolbar action).
 
         :var AboutDialog dialog: About dialog.
         """
@@ -336,7 +330,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 and path.exists(self.session.destination)
                 and self.session.source != self.session.destination):
 
-            # Getting deletions from the source
+            # Getting list of deletions from the source
             self.statusbar.showMessage("Listing deletions...")
             deletions = self.session.get_deletions()
             if deletions:
@@ -349,6 +343,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                     Qt.ItemFlag.ItemIsUserCheckable)
                     item.setCheckState(Qt.CheckState.Unchecked)
                     self.delList.addItem(item)
+            elif isinstance(deletions, CalledProcessError):
+                e, c = deletions.stderr, deletions.returncode
+                self.session.log(f"Error while listing deletions ({c})!", e)
+                self.statusbar.showMessage("Error while listing deletions.")
             else:
                 self.session.log("No deletions found, "
                                     "ready to synchronize.")
@@ -397,7 +395,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.session.delete_entity(entity)
                 self.session.deleted += 1
                 self.session.log(f"{entity} deleted.")
-            except FileNotFoundError as e:
+            except (FileNotFoundError, PermissionError, OSError) as e:
                 self.session.log(f"Error while deleting {entity}!", e)
         self.session.log(f"{self.session.deleted} entities deleted.")
 
@@ -417,8 +415,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                          if self.session.options else "..."}")
         self.statusbar.showMessage("Synchronizing...")
         result = self.session.sync()
-        # print(result.stdout)
-        # print(result.stderr, file=sys.stderr)
         if result.returncode == 0:
             self.session.log("Synchronization finished.")
         else:

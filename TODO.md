@@ -1,7 +1,6 @@
 # arXive todo
 
 - documentation
-- handle rsync exceptions/return codes, update exceptions
 
 ## test issues
 
@@ -15,6 +14,7 @@
 
 - config editing
 - enable (non-default) additional options
+- limit the length of listed deletions to 80 characters
 
 ## GUI
 
