@@ -156,6 +156,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         defaults_action.triggered.connect(self.defaults_action)
         self.toolbar.addAction(defaults_action)
 
+        # Show session log
+        show_log_action = QAction(
+            QIcon('src/ui/log-viewer.svg'), "Show session log", self)
+        show_log_action.triggered.connect(self.show_log_action)
+        self.toolbar.addAction(show_log_action)
+
         # <--- left side
         self.toolbar.addWidget(spacer)
         # right side --->
@@ -215,6 +221,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.syncButton.setEnabled(False)
 
     @Slot()
+    def show_log_action(self):
+        """Open the 'Session log' dialog (toolbar action).
+
+        :var LogViewerDialog dialog: Session log dialog.
+        """
+
+        dialog = LogViewerDialog(self.session.log_path, self)
+        dialog.exec()
+
+    @Slot()
     def update_action(self):
         """Update Git repository and Python environment (toolbar action)."""
 
@@ -270,7 +286,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         :var ConfigDialog dialog: Configuration dialog
         """
 
-        dialog = ConfigDialog(self.config)
+        dialog = ConfigDialog(self.config, self)
         # `ConfigDialog.config_updated` emits the signal when configs are saved
         dialog.config_updated.connect(self.config_updated)
         dialog.exec()

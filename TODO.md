@@ -17,5 +17,3 @@
 - limit the length of listed deletions to 80 characters
 
 ## GUI
-
-- session log button and viewer
