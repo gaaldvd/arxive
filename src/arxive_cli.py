@@ -21,9 +21,29 @@ Check the documentation for details: https://arxive.readthedocs.io
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from shutil import get_terminal_size
 from sys import argv, exit as close
 from arxive_common import *
 
+
+# Maximum number of characters in a line of the terminal
+TERMINAL_SIZE = get_terminal_size().columns
+
+def shorten_path(entity, limit):
+    """Create a shortened path so that it fits in one line of the terminal.
+
+    :param str entity: The full path of the entity.
+    :param int limit: The maximum number of characters in the shortened string.
+
+    :return: Shortened path of the entity.
+    :rtype: str
+    """
+
+    if len(entity) < limit:
+        return entity
+    else:
+        return (f"{entity[:int(limit / 2 - 5)]}"
+                f" ... {entity[-int(limit / 2 - 5):]}")
 
 def main():
     """arXive CLI script.
@@ -49,7 +69,6 @@ def main():
     try:
         session = Session()
         session.log("Session log created.")
-    # TODO Specify exception
     except (FileNotFoundError, PermissionError, OSError) as e:
         print(f"Error while creating session log: {e}")
         close("Goodbye!")
@@ -98,7 +117,7 @@ def main():
     session.log(f"\n{len(session.deletions)} deletion(s) found.\n")
     if len(session.deletions) > 0:
         for entity in session.deletions:
-            print(f"  {entity}")
+            print(f"  {shorten_path(entity, TERMINAL_SIZE - 4)}")
         if no_interrupt:
             del_choice = "a"
         else:
@@ -112,9 +131,12 @@ def main():
                 try:
                     session.delete_entity(entity)
                     session.deleted += 1
-                    session.log(f"{entity} deleted.")
+                    session.log(f"{shorten_path(entity, TERMINAL_SIZE - 10)}"
+                                f" deleted.")
                 except (FileNotFoundError, PermissionError, OSError) as e:
-                    session.log(f"Error while deleting {entity}!", e)
+                    session.log(f"Error while deleting "
+                                f"{shorten_path(entity, TERMINAL_SIZE - 22)}"
+                                f"!", e)
             session.log(f"{session.deleted} entities deleted.")
         elif del_choice == "n":
             session.log(f"Deletion of {len(session.deletions)} "
@@ -123,17 +145,22 @@ def main():
             entities = [path.join(session.destination, entity)
                         for entity in session.deletions
                         if input(f"Delete "
-                                 f"{path.join(session.destination, entity)} "
-                                 f"[Y/n]: ").strip().lower() != "n"]
+                                 f"{shorten_path(
+                                     path.join(session.destination, entity), 
+                                     TERMINAL_SIZE - 16)}"
+                                 f" [Y/n]: ").strip().lower() != "n"]
             session.deleted = 0
             for entity in entities:
                 try:
                     session.delete_entity(entity)
                     session.deleted += 1
-                    session.log(f"{entity} deleted.")
+                    session.log(f"{shorten_path(entity, TERMINAL_SIZE - 10)}"
+                                f" deleted.")
                 except (FileNotFoundError, PermissionError, OSError) as e:
-                    session.log(f"Error while deleting {entity}!", e)
-            session.log(f"{session.deleted} entities deleted.")
+                    session.log(f"Error while deleting "
+                                f"{shorten_path(entity, TERMINAL_SIZE - 22)}"
+                                f"!", e)
+            session.log(f"\n{session.deleted} entities deleted.")
 
     # Synchronizing source and destination with rsync
     if no_interrupt:
@@ -142,7 +169,7 @@ def main():
         sync_choice = input("\nProceed with synchronization? "
                             "[Y/n]: ").strip().lower()
     if sync_choice == "n":
-        session.log("\nSynchronization stopped. Goodbye!")
+        session.log("\nSynchronization stopped.")
         close("Goodbye!")
     else:
         session.log(f"Syncing from {session.source} "

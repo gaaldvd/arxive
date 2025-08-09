@@ -14,6 +14,5 @@
 
 - config editing
 - enable (non-default) additional options
-- limit the length of listed deletions to 80 characters
 
 ## GUI
