@@ -44,16 +44,27 @@ The session log (`session.log` in the installation directory) contains details a
 
 Start arXive from the Application Menu or from the terminal with the `-g` option. There is no no-interruption mode in the GUI mode!
 
-The user interface is self-explanatory. The source and destination directories can be set with the first two buttons on the toolbar, the third one sets the defaults from the configuration file. The last button on the left side opens the session log. The defaults can be changed in the configuration dialog which can be opened from the toolbar as well. Use the update button to update the repository and the environment.
+[![alt toolbar](src/ui/toolbar.png)](https://github.com/gaaldvd/arxive/blob/main/src/ui/toolbar.png)
 
-After choosing the directories use the List deletions button, tick the files and directories you'd like to delete and Run sync!
+1. Set source directory
+2. Set destination directory
+3. Use defaults (source, destination and options)
+4. View session log
+5. Update
+6. Configurations (default source, destination and options)
+7. About
+8. Exit
+
+Default source and destination directories as well as the default rsync options can be set in the configurations window (6).
+
+After setting the directories use the 'List deletions' button, tick the files and directories you'd like to delete from the destination, then 'Run sync'!
 
 ## Update
 
 1. Start the application from the terminal with the `-u` option: `arxive -u`
 2. Follow the prompts to update the environment and/or the repository
 
-There is also an Update button on the GUI toolbar.
+There is also an 'Update' button on the GUI toolbar (5).
 
 ## Reporting errors
 
